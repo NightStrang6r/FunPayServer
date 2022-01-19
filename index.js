@@ -1,7 +1,7 @@
 const request = require('sync-request');
 const config = require('./config.json');
 
-const raiseUrl = 'https://funpay.ru/lots/raise';
+const raiseUrl = 'https://funpay.com/lots/raise';
 config.headers.cookie = `${config.headers.cookie} golden_key=${config.token}`;
 const headers = config.headers;
 
@@ -60,5 +60,5 @@ function sleep(n) {
     msleep(n*1000);
 }
 
-setInterval(raiseLots, 60000)
+setInterval(raiseLots, 60000);
 raiseLots();
