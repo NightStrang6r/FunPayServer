@@ -17,39 +17,44 @@ function raiseLots(){
         if(res.success) {
             console.log(`[${lotsCounter}] Лот ${lot.name}: ${res.msg}`);
         } else {
-            console.log(`Ошибка при поднятии лота ${lot.name}: ${res.msg}`);
+            console.log(`Ошибка при поднятии лота ${lot.name}`);
         }
         sleep(0.5);
     });
 }
 
 function raiseLot(game_id, node_id){
-    let raiseBody = `${encodeURI('game_id')}=${encodeURI(game_id)}&${encodeURI('node_id')}=${encodeURI(node_id)}`;
-    let res = request('POST', raiseUrl, {
-        headers: headers,
-        body: raiseBody,
-        retry: true,
-        retryDelay: 500,
-        maxRetries: Infinity
-    });
-    res = JSON.parse(res.getBody('utf8'));
-    if(res.modal) {
-        let reg = new RegExp(`value="(.*?)"`, `g`);
-        let regRes = [...res.modal.matchAll(reg)];
-        let modalRaiseBody = raiseBody;
-        regRes.forEach(id => {
-            modalRaiseBody += `&${encodeURI('node_ids[]')}=${encodeURI(id[1])}`;
-        });
-        res = request('POST', raiseUrl, {
+    try {
+        let raiseBody = `${encodeURI('game_id')}=${encodeURI(game_id)}&${encodeURI('node_id')}=${encodeURI(node_id)}`;
+        let res = request('POST', raiseUrl, {
             headers: headers,
-            body: modalRaiseBody,
+            body: raiseBody,
             retry: true,
             retryDelay: 500,
             maxRetries: Infinity
         });
         res = JSON.parse(res.getBody('utf8'));
+        if(res.modal) {
+            let reg = new RegExp(`value="(.*?)"`, `g`);
+            let regRes = [...res.modal.matchAll(reg)];
+            let modalRaiseBody = raiseBody;
+            regRes.forEach(id => {
+                modalRaiseBody += `&${encodeURI('node_ids[]')}=${encodeURI(id[1])}`;
+            });
+            res = request('POST', raiseUrl, {
+                headers: headers,
+                body: modalRaiseBody,
+                retry: true,
+                retryDelay: 500,
+                maxRetries: Infinity
+            });
+            res = JSON.parse(res.getBody('utf8'));
+        }
+        return {success: true, msg: res.msg};
+    } catch(err) {
+        console.log(`Ошибка при отправке запроса.\nПодробности: ${err}\nМы попробуем снова...`);
+        return {success: false};
     }
-    return {success: true, msg: res.msg};
 }
 
 function msleep(n) {
