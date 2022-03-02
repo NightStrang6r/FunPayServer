@@ -1,0 +1,26 @@
+{
+  "name": "funpayautoup",
+  "version": "1.0.0",
+  "description": "CLI app for lots auto up on FunPay",
+  "main": "src/index.js",
+  "dependencies": {
+    "jsdom": "^19.0.0",
+    "request": "^2.88.2",
+    "sync-request": "^6.1.0"
+  },
+  "type": "module",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NightStrang6r/FunPayAutoUP.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NightStrang6r/FunPayAutoUP/issues"
+  },
+  "homepage": "https://github.com/NightStrang6r/FunPayAutoUP#readme"
+}
