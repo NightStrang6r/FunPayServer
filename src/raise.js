@@ -1,5 +1,6 @@
 import request from 'sync-request';
 import config from '../config.js';
+import categories from '../data/categories.js';
 import { log } from './log.js';
 
 const raiseUrl = 'https://funpay.com/lots/raise';
@@ -12,7 +13,7 @@ function raiseLots(){
     let lotsCounter = 0;
     raiseCounter++;
     log(`===================== Поднятие лотов №${raiseCounter} =====================`);
-    config.lots.forEach(lot => {
+    categories.lots.forEach(lot => {
         lotsCounter++;
         let res = raiseLot(lot.game_id, lot.node_id);
         if(res.success) {
