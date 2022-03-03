@@ -1,7 +1,16 @@
 import { raiseLots } from './raise.js';
-import { updateCategoriesData } from './getCategories.js';
+import { updateCategoriesData } from './categories.js';
+import { getUserId } from './account.js';
+import { updateGoodsState } from './goods.js';
+import { checkActivity } from './activity.js';
+import { log } from './log.js';
 
-updateCategoriesData();
+log(`Получаем ID пользователя...`);
+const userId = getUserId();
+log(`ID пользователя: ${userId}`);
 
-setInterval(raiseLots, 60000);
-raiseLots();
+//updateGoodsState(userId);
+checkActivity(userId);
+
+/*setInterval(raiseLots, 60000);
+raiseLots();*/

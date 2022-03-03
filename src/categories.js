@@ -1,16 +1,12 @@
 import request from 'sync-request';
 import config from '../config.js';
-import { JSDOM } from 'jsdom';
 import { log } from './log.js';
 import { updateFile } from './storage.js';
+import { parseDOM } from './DOMParser.js';
+import { headers } from './account.js';
 
-const headers = { "cookie": `golden_key=${config.token}`};
-
-function updateCategoriesData() {
+function updateCategoriesData(userId) {
     log(`Обновляем спикок категорий...`);
-    log(`Получаем ID пользователя...`)
-    const userId = getUserId();
-    log(`ID пользователя: ${userId}`);
     log(`Получаем список категорий...`);
     const cat = getAllCategories(userId);
     log(`Получаем информацию о категориях...`);
@@ -80,30 +76,4 @@ function getAllCategories(userId) {
     return result;
 }
 
-function getUserId() {
-    let result = false;
-    try {
-        const res = request('GET', config.api, {
-            headers: headers,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
-        });
-        const body = res.getBody('utf8');
-        const doc = parseDOM(body);
-        const accoutLink = doc.querySelector(".user-link-dropdown").href;
-        const split = accoutLink.split('/');
-
-        result = split[split.length - 2];
-    } catch (err) {
-        log(`Ошибка при получении UserId: ${err}`);
-    }
-    return result;
-}
-
-function parseDOM(text) {
-    const { document } = (new JSDOM(text)).window;
-    return document;
-}
-
-export { getUserId, getAllCategories, getCategoryData, getCategoriesData, updateCategoriesData };
+export { getAllCategories, getCategoryData, getCategoriesData, updateCategoriesData };
