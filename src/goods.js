@@ -72,6 +72,7 @@ function getGoodsFromCategory(category, full = false) {
                 };
             } else {
                 good = {
+                    node_id: goodEl.dataset.node,
                     offer_id: goodEl.dataset.offer,
                     active: active
                 };
