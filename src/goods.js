@@ -6,11 +6,11 @@ import { updateFile } from './storage.js';
 import { log } from './log.js';
 
 function updateGoodsState(userId) {
-    log(`Обновляем спикок активности товаров...`);
+    log(`Обновляем список состояния товаров...`);
     const data = { goods: getAllGoods(userId) };
 
     updateFile(data, `../data/goodsState.js`);
-    log(`Список активности товаров обновлён.`);
+    log(`Список состояния товаров обновлён.`);
 }
 
 /*function backupGoods(userId) {

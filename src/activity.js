@@ -7,6 +7,7 @@ import { log } from './log.js';
 
 function checkGoodsState(userId) {
     try {
+        log(`Проверяем состояние товаров на наличие изменений...`);
         const goodsNow = getAllGoods(userId);
         const goodsBackup = goodsState.goods;
 
@@ -20,12 +21,15 @@ function checkGoodsState(userId) {
                 }
             }
         }
+
+        log(`Проверка состояния товаров завершена.`);
     } catch (err) {
         log(`Ошибка при проверке активности лотов: ${err}`);
     }
 }
 
 function setState(state, offer_id, node_id) {
+    log(`Обновляем состояние товара ${offer_id}...`);
     let result = [];
     try {
         const query = `?tag=${getRandomTag()}&offer=${offer_id}&node=${node_id}`;
@@ -47,6 +51,7 @@ function setState(state, offer_id, node_id) {
         const body = res.getBody('utf8');
         const json = JSON.parse(body);
         const doc = parseDOM(json.html);
+        const PHPSESSID = res.headers['set-cookie'][0].split(';')[0].split('=')[1];
         const inputsEl = doc.querySelectorAll("input");
         const textAreaEl = doc.querySelectorAll("textarea");
         const selectEl = doc.querySelectorAll("select");
@@ -94,21 +99,20 @@ function setState(state, offer_id, node_id) {
             };
         });
 
-        /*inputData[inputData.length] = {
+        inputData[inputData.length] = {
             name: "location",
             value: "trade"
-        };*/
+        };
         
-
-        //log(inputData);
-        saveOffer(inputData);
+        saveOffer(inputData, PHPSESSID);
     } catch(err) {
-        log(`Ошибка при получении товара: ${err}`);
+        log(`Ошибка при обновлении состояния товара: ${err}`);
     }
+    log(`Состояние товара ${offer_id} обновлено.`);
     return result;
 }
 
-function saveOffer(inputs) {
+function saveOffer(inputs, PHPSESSID) {
     let result = [];
     try {
         const url = `${config.api}/lots/offerSave`;
@@ -116,16 +120,13 @@ function saveOffer(inputs) {
             "accept": "*/*",
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest",
-            "origin": config.api,
-            "cookie": `golden_key=${config.token}`,
+            "cookie": `golden_key=${config.token}; PHPSESSID=${PHPSESSID}`,
         };
         let body = ``;
 
         inputs.forEach(input => {
-            body += `${encodeURI(input.name)}=${input.value}&`;
+            body += `${encodeURIComponent(input.name)}=${encodeURIComponent(input.value)}&`;
         });
-        body += `${encodeURI('location')}=${encodeURI('trade')}`;
-        //log(body);
 
         const res = request('POST', url, {
             headers: headers,
