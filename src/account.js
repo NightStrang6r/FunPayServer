@@ -58,7 +58,7 @@ function countTradeProfit() {
     return result;
 }
 
-function getUserId() {
+function getUserData() {
     let result = false;
     try {
         const res = request('GET', config.api, {
@@ -69,14 +69,18 @@ function getUserId() {
         });
         const body = res.getBody('utf8');
         const doc = parseDOM(body);
-        const accoutLink = doc.querySelector(".user-link-dropdown").href;
-        const split = accoutLink.split('/');
+        const appData = JSON.parse(doc.querySelector("body").dataset.appData);
+        const PHPSESSID = res.headers['set-cookie'][0].split(';')[0].split('=')[1];
 
-        result = split[split.length - 2];
+        result = {
+            id: appData.userId,
+            csrfToken: appData["csrf-token"],
+            sessid: PHPSESSID
+        };
     } catch (err) {
-        log(`Ошибка при получении UserId: ${err}`);
+        log(`Ошибка при получении данных аккаунта: ${err}`);
     }
     return result;
 }
 
-export { getUserId, headers, countTradeProfit };
+export { getUserData, headers, countTradeProfit };
