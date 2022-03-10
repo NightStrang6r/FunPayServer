@@ -12,12 +12,12 @@ log(`Получаем данные пользователя...`);
 const userData = getUserData();
 log(`ID пользователя: ${userData.id}`);
 
-autoIssue();
+//autoIssue();
 
 
 
-/*updateCategoriesData(userId);
-updateGoodsState(userId);
+/*updateCategoriesData();
+updateGoodsState();
 
 setInterval(() => {checkGoodsState(userId)}, 120000);
 setInterval(raiseLots, 60000);

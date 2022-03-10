@@ -4,10 +4,11 @@ import { parseDOM } from './DOMParser.js';
 import { getAllCategories } from './categories.js';
 import { updateFile } from './storage.js';
 import { log } from './log.js';
+import appData from '../data/appData.js';
 
-function updateGoodsState(userId) {
+function updateGoodsState() {
     log(`Обновляем список состояния товаров...`);
-    const data = { goods: getAllGoods(userId) };
+    const data = { goods: getAllGoods(appData.id) };
 
     updateFile(data, `../data/goodsState.js`);
     log(`Список состояния товаров обновлён.`);

@@ -4,11 +4,12 @@ import goodsState from '../data/goodsState.js';
 import { parseDOM } from './DOMParser.js';
 import config from '../config.js';
 import { log } from './log.js';
+import appData from '../data/appData.js';
 
-function checkGoodsState(userId) {
+function checkGoodsState() {
     try {
         log(`Проверяем состояние товаров на наличие изменений...`);
-        const goodsNow = getAllGoods(userId);
+        const goodsNow = getAllGoods(appData.id);
         const goodsBackup = goodsState.goods;
 
         for(let i = 0; i < goodsNow.length; i++) {

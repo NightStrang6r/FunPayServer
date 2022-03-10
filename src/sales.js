@@ -16,8 +16,7 @@ async function autoIssue() {
     
                 const order = orders.newOrders[0];
                 if(order) {
-                    //issueGood(order.buyerId, order.name);
-                    log(123);
+                    issueGood(order.buyerId, order.name);
                     backupOrders = order.backupOrders;
                 }
             });
@@ -52,8 +51,9 @@ function issueGood(buyerId, goodName) {
         }
     }
     if(message != "") {
-        sendMessage(buyerId, message);
-        log(`Товар ${goodName} выдан пользователю ${buyerId}`);
+        //sendMessage(buyerId, message);
+        log(`Товар ${goodName} выдан пользователю ${buyerId} с сообщением:`);
+        log(message);
     }
 }
 

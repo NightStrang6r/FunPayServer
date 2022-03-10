@@ -4,11 +4,12 @@ import { log } from './log.js';
 import { updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
+import appData from '../data/appData.js';
 
-function updateCategoriesData(userId) {
+function updateCategoriesData() {
     log(`Обновляем спикок категорий...`);
     log(`Получаем список категорий...`);
-    const cat = getAllCategories(userId);
+    const cat = getAllCategories(appData.id);
     log(`Получаем информацию о категориях...`);
     const data = { lots: getCategoriesData(cat) };
 
@@ -53,10 +54,10 @@ function getCategoryData(category) {
     return result;
 }
 
-function getAllCategories(userId) {
+function getAllCategories() {
     let result = [];
     try {
-        const res = request('GET', `${config.api}/users/${userId}/`, {
+        const res = request('GET', `${config.api}/users/${appData.id}/`, {
             headers: headers,
             retry: true,
             retryDelay: 500,
@@ -71,7 +72,7 @@ function getAllCategories(userId) {
             result[i] = categories[i].firstElementChild.href;
         }
     } catch (err) {
-        log(`Ошибка при получении UserId: ${err}`);
+        log(`Ошибка при получении категорий: ${err}`);
     }
     return result;
 }
