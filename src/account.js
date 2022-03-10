@@ -2,6 +2,7 @@ import request from 'sync-request';
 import config from '../config.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
+import { updateFile } from './storage.js';
 
 const headers = { "cookie": `golden_key=${config.token}`};
 
@@ -77,6 +78,7 @@ function getUserData() {
             csrfToken: appData["csrf-token"],
             sessid: PHPSESSID
         };
+        updateFile(result, '../data/appData.js');
     } catch (err) {
         log(`Ошибка при получении данных аккаунта: ${err}`);
     }

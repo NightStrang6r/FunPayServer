@@ -2,16 +2,25 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+const dataFolder = 'data';
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 
 function initStorage() {
-    if(!fs.existsSync(`${_dirname}/data`)) {
-        fs.openSync(`${_dirname}/data/categories.js`, 'w');
-        fs.openSync(`${_dirname}/data/goodsState.js`, 'w');
+    const files = [
+        "appData.js", "categories.js", "goodsState.js", "autoIssueGoods.js", "goodsBackup.js"
+    ];
+
+    if(!fs.existsSync(`${_dirname}/../${dataFolder}`)) {
+        fs.mkdirSync(`${_dirname}/../${dataFolder}`);
     }
-    fs.writeFileSync(`${_dirname}/data/categories.js`, 'export default\n');
-    fs.writeFileSync(`${_dirname}/data/categories.js`, 'export default\n');
+
+    files.forEach(file => {
+        if(!fs.existsSync(`${_dirname}/../${dataFolder}/${file}`)) {
+            fs.openSync(`${_dirname}/../${dataFolder}/${file}`, 'w');
+            fs.writeFileSync(`${_dirname}/../${dataFolder}/${file}`, 'export default\n{\n}');
+        }
+    });
 }
 
 function updateFile(content, filePath) {
@@ -31,4 +40,4 @@ function updateFile(content, filePath) {
     return result;
 }
 
-export { updateFile };
+export { updateFile, initStorage };
