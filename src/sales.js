@@ -5,29 +5,34 @@ import { parseDOM } from './DOMParser.js';
 import { sendMessage } from './chat.js';
 import issue from '../data/autoIssueGoods.js';
 
-async function autoIssue() {
+async function autoIssue(timeout) {
     let backupOrders = await getOrders();
+    let orders = [];
 
-    setInterval(() => {
+    setInterval(async () => {
         try {
-            getNewOrders(backupOrders).then((orders) => {
-                log(`Проверяем на наличие новых заказов...`);
-                if(!orders.newOrders) return;
+            log(`Проверяем на наличие новых заказов...`);
+            orders = await getNewOrders(backupOrders);
+            if(!orders || !orders.newOrders[0]) {
+                log(`Новых заказов нет.`);
+                return;
+            }
+            log(orders.newOrders);
     
-                const order = orders.newOrders[0];
-                if(order) {
-                    issueGood(order.buyerId, order.name);
-                    backupOrders = order.backupOrders;
-                }
-            });
+            const order = orders.newOrders[0];
+            if(order) {
+                issueGood(order.buyerId, order.name);
+                backupOrders = orders.backupOrders;
+            }
         } catch (err) {
             log(`Ошибка при автовыдаче: ${err}`);
         }
-    }, 10000);
+    }, timeout);
+
     log(`Автовыдача запущена.`);
 }
 
-function issueGood(buyerId, goodName) {
+async function issueGood(buyerId, goodName) {
     const goods = issue.goods;
     let message = "";
     
@@ -51,42 +56,47 @@ function issueGood(buyerId, goodName) {
         }
     }
     if(message != "") {
-        //sendMessage(buyerId, message);
+        await sendMessage(buyerId, message).then(res => {log(res)});
         log(`Товар ${goodName} выдан пользователю ${buyerId} с сообщением:`);
         log(message);
+    } else {
+        log(`Товара ${goodName} нет в списке автовыдачи, пропускаю.`);
     }
 }
 
-function getNewOrders(lastOrders) {
-    if(!lastOrders[0]) return;
-    let result = false;
+async function getNewOrders(lastOrders) {
+    if(!lastOrders || !lastOrders[0]) {
+        log(`Начальные данные по заказам не переданы`);
+        return;
+    }
+    let result = [];
+    let orders = [];
 
     try {
-        result = getOrders().then(orders => {
-            if(!orders[0]) return;
+        orders = await getOrders();
+        if(!orders || !orders[0]) {
+            log(`Список новых заказов пуст`);
+            return;
+        }
     
-            const res = [];
-            const lastOrderId = lastOrders[0].id;
+        const lastOrderId = lastOrders[0].id;
         
-            for(let i = 0; i < orders.length; i++) {
-                if(orders[i].id == lastOrderId) {
-                    break;
-                }
-                    
-                res[i] = orders[i];
+        for(let i = 0; i < orders.length; i++) {
+            if(orders[i].id == lastOrderId) {
+                break;
             }
-    
-            return {newOrders: res, backupOrders: orders};
-        });
+                
+            result[i] = orders[i];
+        }
     } catch(err) {
         log(`Ошибка при получении новых заказов: ${err}`);
     }
 
-    return result;
+    return {newOrders: result, backupOrders: orders};
 }
 
-function getOrders() {
-    let result = false;
+async function getOrders() {
+    let result = [];
     try {
         const url = `${config.api}/orders/trade`;
         const headers = {
@@ -99,34 +109,31 @@ function getOrders() {
             headers: headers
         }
 
-        result = fetch(url, options)
-            .then(async resp => {
-                const data = await resp.text();
-                const doc = parseDOM(data);
-                const ordersEl = doc.querySelectorAll(".tc-item");
-                const res = [];
+        let resp = await fetch(url, options)
+        
+        const data = await resp.text();
+        const doc = parseDOM(data);
+        const ordersEl = doc.querySelectorAll(".tc-item");
 
-                for(let i = 0; i < ordersEl.length; i++) {
-                    const order = ordersEl[i];
-                    const id = order.querySelector(".tc-order").innerHTML;
-                    const name = order.querySelector(".order-desc").firstElementChild.innerHTML;
-                    const buyerProfileLink = order.querySelector(".avatar-photo").dataset.href.split("/");
-                    const buyerId = buyerProfileLink[buyerProfileLink.length - 2];
-                    const status = order.querySelector(".tc-status").innerHTML;
-                    const price = Number(order.querySelector(".tc-price").firstChild.textContent);
+        for(let i = 0; i < ordersEl.length; i++) {
+            const order = ordersEl[i];
+            const id = order.querySelector(".tc-order").innerHTML;
+            const name = order.querySelector(".order-desc").firstElementChild.innerHTML.split(", ")[1];
+            const buyerProfileLink = order.querySelector(".avatar-photo").dataset.href.split("/");
+            const buyerId = buyerProfileLink[buyerProfileLink.length - 2];
+            const status = order.querySelector(".tc-status").innerHTML;
+            const price = Number(order.querySelector(".tc-price").firstChild.textContent);
 
+            result[i] = {
+                id: id,
+                name: name,
+                buyerId: buyerId,
+                status: status,
+                price: price
+            }
+        }
 
-                    res[i] = {
-                        id: id,
-                        name: name,
-                        buyerId: buyerId,
-                        status: status,
-                        price: price
-                    }
-                }
-
-                return res;
-            });
+        return result;
     } catch (err) {
         log(`Ошибка при получении списка продаж: ${err}`);
     }

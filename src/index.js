@@ -1,19 +1,19 @@
 import { raiseLots } from './raise.js';
 import { checkGoodsState } from './activity.js';
 import { updateGoodsState } from './goods.js';
-import { getUserData } from './account.js';
+import { getUserData, autoUserDataUpdate } from './account.js';
 import { updateCategoriesData } from './categories.js';
 import { log } from './log.js';
 
-import { getMessages, sendMessage } from './chat.js';
+import { getMessages, sendMessage, getChats } from './chat.js';
 import { getOrders, getNewOrders, issueGood, autoIssue } from './sales.js';
 
 log(`Получаем данные пользователя...`);
 const userData = getUserData();
 log(`ID пользователя: ${userData.id}`);
 
-//autoIssue();
-
+//autoUserDataUpdate(3600000);
+//autoIssue(10000);
 
 
 /*updateCategoriesData();

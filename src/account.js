@@ -59,6 +59,11 @@ function countTradeProfit() {
     return result;
 }
 
+function autoUserDataUpdate(timeout) {
+    setInterval(getUserData, timeout);
+    log(`Автоматический апдейт данных запущен.`);
+}
+
 function getUserData() {
     let result = false;
     try {
@@ -85,4 +90,4 @@ function getUserData() {
     return result;
 }
 
-export { getUserData, headers, countTradeProfit };
+export { headers, getUserData, countTradeProfit, autoUserDataUpdate };
