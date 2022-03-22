@@ -88,26 +88,39 @@ function getMessages(userId, senderId) {
     return result;
 }
 
-function sendMessage(senderId, message, customNode = false) {
-    if(!message || !senderId) return;
+async function sendMessage(senderId, message, customNode = false) {
+    if(!message || message == undefined || !senderId || senderId == undefined) return;
+
     let result = false;
     let node = "";
+
     try {
         const url = `${config.api}/runner/`;
         const headers = {
             "accept": "*/*",
             "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest"
         };
+
         if(!customNode) {
             node = `users-${appData.id}-${senderId}`;
         } else {
             node = senderId;
         }
-        const request = `{"action":"chat_message","data":{"node":"${node}","last_message":7525300770,"content":"${message}","compact":1,"show_avatar":1}}`;
+
+        const request = {
+            "action": "chat_message",
+            "data": {
+                "node": node,
+                "last_message": 767373447,
+                "content": message
+            }
+        };
+
         const params = new URLSearchParams();
         params.append('objects', "");
-        params.append('request', request);
+        params.append('request', JSON.stringify(request));
         params.append('csrf_token', appData.csrfToken);
 
         const options = {
@@ -116,10 +129,18 @@ function sendMessage(senderId, message, customNode = false) {
             headers: headers
         };
 
-        result = fetch(url, options)
-            .then(resp => {
-                return resp.json();
-            });
+        const resp = await fetch(url, options);
+        result = await resp.json();
+
+        if(result.response != false) {
+            log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
+        } else {
+            log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);
+            log(`Request:`);
+            console.log(params.toString());
+            log(`Response:`);
+            console.log(result);
+        }
     } catch (err) {
         log(`Ошибка при отправке сообщения: ${err}`);
     }
