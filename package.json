@@ -4,7 +4,10 @@
   "description": "CLI app for lots auto up on FunPay",
   "main": "src/index.js",
   "dependencies": {
+    "imap-simple": "^5.1.0",
     "jsdom": "^19.0.0",
+    "lodash": "^4.17.21",
+    "mailparser": "^3.4.0",
     "node-fetch": "^3.2.1",
     "request": "^2.88.2",
     "sync-request": "^6.1.0"
