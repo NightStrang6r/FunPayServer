@@ -1,7 +1,6 @@
 import imap from 'imap-simple';
 import lodash from 'lodash';
 import { simpleParser }  from 'mailparser';
-import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
 
 const config = {
@@ -15,49 +14,83 @@ const config = {
     }
 };
 
-async function getEmails() {
-    const connection = await imap.connect(config);
-    await connection.openBox('INBOX');
-
-    let searchCriteria = [
-        'ALL'
-    ];
-
-    let fetchOptions = {
-        bodies: ['HEADER', 'TEXT'],
-        markSeen: false
-    };
-
-    const messages = await connection.search(searchCriteria, fetchOptions);
-
-    const item = messages[messages.length - 4];
-    let all = lodash.find(item.parts, { "which": "TEXT" });
-    let id = item.attributes.uid;
-    let idHeader = "Imap-Id: " + id + "\r\n";
-
-    simpleParser(idHeader + all.body, (err, mail) => {
-        let text = mail.text;
-        let code = "";
-        for(let i = 0; i < text.length; i++) {
-            if((isUpperCase(text[i]) || isNumber(text[i]))
-            && (isUpperCase(text[i + 1]) || isNumber(text[i + 1]))
-            && (isUpperCase(text[i + 2]) || isNumber(text[i + 2]))
-            && (isUpperCase(text[i + 3]) || isNumber(text[i + 3]))
-            && (isUpperCase(text[i + 4]) || isNumber(text[i + 4]))) {
-                code = text.substr(i, 5);
-                if(countNumbers(code) >= 4) {
-                    log(code);
-                    continue;
+async function getSteamCode() {
+    let code = false;
+    try {
+        const whitelist = [
+            "Код Steam Guard, необходимый для входа в аккаунт",
+            "Here is the Steam Guard code you need to login to account"
+        ];
+        const messages = await getAllEmails();
+    
+        for(let i = messages.length - 1; i >= 0; i--) {
+            const item = messages[i];
+            const all = lodash.find(item.parts, { "which": "TEXT" });
+            const id = item.attributes.uid;
+            const idHeader = "Imap-Id: " + id + "\r\n";
+        
+            const mail = await simpleParser(idHeader + all.body);
+            console.log(mail);
+            const text = mail.text;
+            let containsWhitelist = false;
+    
+            whitelist.forEach(word => {
+                if(text.includes(word)) {
+                    containsWhitelist = true;
+                    return;
                 }
-                    
-                break;
+            });
+    
+            if(!containsWhitelist) {
+                continue;
             }
+    
+            for(let i = 0; i < text.length; i++) {
+                if((isUpperCase(text[i]) || isNumber(text[i]))
+                && (isUpperCase(text[i + 1]) || isNumber(text[i + 1]))
+                && (isUpperCase(text[i + 2]) || isNumber(text[i + 2]))
+                && (isUpperCase(text[i + 3]) || isNumber(text[i + 3]))
+                && (isUpperCase(text[i + 4]) || isNumber(text[i + 4]))) {
+                    code = text.substr(i, 5);
+                    if(countNumbers(code) >= 4)
+                        continue;
+                    break;
+                }
+            }
+    
+            if(code)
+                break;
         }
-        console.log(code);
-    });
+    } catch (err) {
+        log(`Ошибка при парсинге кода Steam Guard: ${err}`);
+    }
 
-    //log(html);
-    await connection.end();
+    return code;
+}
+
+async function getAllEmails() {
+    let messages = false;
+    try {
+        const connection = await imap.connect(config);
+        await connection.openBox('INBOX');
+    
+        const searchCriteria = [
+            'ALL'
+        ];
+    
+        const fetchOptions = {
+            bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)', 'TEXT'],
+            markSeen: false
+        };
+    
+        messages = await connection.search(searchCriteria, fetchOptions);
+    
+        await connection.end();
+    } catch(err) {
+        log(`Ошибка при получении почты: ${err}`);
+    }
+    
+    return messages;
 }
 
 function countNumbers(string) {
@@ -82,4 +115,4 @@ function isUpperCase(letter) {
     return letter.toUpperCase() == letter;
 }
 
-export { getEmails };
+export { getAllEmails, getSteamCode };

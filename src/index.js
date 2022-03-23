@@ -7,13 +7,14 @@ import { log } from './log.js';
 
 import { getMessages, sendMessage, getChats } from './chat.js';
 import { getOrders, getNewOrders, issueGood, autoIssue } from './sales.js';
-import { getEmails } from './email.js';
+import { getAllEmails, getSteamCode } from './email.js';
 
 log(`Получаем данные пользователя...`);
 const userData = getUserData();
 log(`ID пользователя: ${userData.id}`);
 
-getEmails();
+const res = await getSteamCode();
+log(res);
 
 //autoUserDataUpdate(3600000);
 //autoIssue(10000);
