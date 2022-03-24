@@ -16,7 +16,9 @@ const config = {
 
 async function getSteamCode() {
     let code = false;
+
     try {
+        const minutes = 10;
         const whitelist = [
             "Код Steam Guard, необходимый для входа в аккаунт",
             "Here is the Steam Guard code you need to login to account"
@@ -25,12 +27,21 @@ async function getSteamCode() {
     
         for(let i = messages.length - 1; i >= 0; i--) {
             const item = messages[i];
+
+            if(!item.attributes.date) break;
+
+            const difference = new Date() - new Date(item.attributes.date);
+
+            if(difference / 60000 > minutes) {
+                log(`Новых писем за последние ${minutes} минут не приходило. Mail date: ${item.attributes.date}`);
+                break;
+            }
+
             const all = lodash.find(item.parts, { "which": "TEXT" });
             const id = item.attributes.uid;
             const idHeader = "Imap-Id: " + id + "\r\n";
         
             const mail = await simpleParser(idHeader + all.body);
-            console.log(mail);
             const text = mail.text;
             let containsWhitelist = false;
     
@@ -79,7 +90,7 @@ async function getAllEmails() {
         ];
     
         const fetchOptions = {
-            bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)', 'TEXT'],
+            bodies: ['TEXT'],
             markSeen: false
         };
     

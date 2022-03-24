@@ -78,12 +78,16 @@ function getUserData() {
         const appData = JSON.parse(doc.querySelector("body").dataset.appData);
         const PHPSESSID = res.headers['set-cookie'][0].split(';')[0].split('=')[1];
 
-        result = {
-            id: appData.userId,
-            csrfToken: appData["csrf-token"],
-            sessid: PHPSESSID
-        };
-        updateFile(result, '../data/appData.js');
+        if(appData.userId != 0) {
+            result = {
+                id: appData.userId,
+                csrfToken: appData["csrf-token"],
+                sessid: PHPSESSID
+            };
+            updateFile(result, '../data/appData.js');
+        } else {
+            log(`Необходимо авторизоваться.`);
+        }
     } catch (err) {
         log(`Ошибка при получении данных аккаунта: ${err}`);
     }

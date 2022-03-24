@@ -5,26 +5,33 @@ import { parseDOM } from './DOMParser.js';
 import config from '../config.js';
 import autoRespData from '../data/autoResponse.js';
 
-function autoResponse() {
+function enableAutoResponse(timeout) {
+    setInterval(autoResponse, timeout);
+    log(`Автоответ запущен.`);
+}
+
+async function autoResponse() {
     let result = false;
 
-    result = getChats().then(chats => {
-        return chats.forEach(chat => {
-            for(let i = 0; i < chats.length; i++) {
-                // Command logic here
-                if(chats[i].message == autoRespData[i].command) {
-                    log(`Command ${autoRespData[i].command}`);
-                    return true;
-                }
+    const chats = await getChats();
+    for(let j = 0; j < chats.length; j++) {
+        const chat = chats[j];
+
+        for(let i = 0; i < autoRespData.length; i++) {
+            // Command logic here
+            if(chat.message == autoRespData[i].command) {
+                log(`Команда: ${autoRespData[i].command}, ответ: ${autoRespData[i].response} для пользователя ${chat.userName}`);
+                await sendMessage(chat.node, autoRespData[i].response, true);
+                break;
             }
-        });
-    });
+        }
+    }
     
     return result;
 }
 
-function getChats() {
-    let result = false;
+async function getChats() {
+    let result = [];
     try {
         const url = `${config.api}/chat/`;
         const headers = { 
@@ -36,38 +43,32 @@ function getChats() {
             headers: headers
         }
 
-        result = fetch(url, options)
-            .then(resp => {
-                return resp.text()
-                    .then(text => {
-                        const doc = parseDOM(text);
-                        const chats = doc.querySelector(".contact-list").children;
-                        let res = [];
+        const resp = await fetch(url, options);
+        const text = await resp.text();
 
-                        for(let i = 0; i < chats.length; i++) {
-                            const chat = chats[i];
+        const doc = parseDOM(text);
+        const chats = doc.querySelector(".contact-list").children;
 
-                            res[i] = {
-                                userName: chat.querySelector(".media-user-name").innerHTML,
-                                message: chat.querySelector(".contact-item-message").innerHTML,
-                                time: chat.querySelector(".contact-item-time").innerHTML,
-                                node: chat.dataset.id
-                            };
-                        }
+        for(let i = 0; i < chats.length; i++) {
+            const chat = chats[i];
 
-                        return res;
-                    });
-            });
+            result[i] = {
+                userName: chat.querySelector(".media-user-name").innerHTML,
+                message: chat.querySelector(".contact-item-message").innerHTML,
+                time: chat.querySelector(".contact-item-time").innerHTML,
+                node: chat.dataset.id
+            };
+        }
     } catch (err) {
         log(`Ошибка при получении чатов: ${err}`);
     }
     return result;
 }
 
-function getMessages(userId, senderId) {
+async function getMessages(senderId) {
     let result = false;
     try {
-        const url = `${config.api}/chat/history?node=users-${userId}-${senderId}&last_message=1000000000`;
+        const url = `${config.api}/chat/history?node=users-${appData.id}-${senderId}&last_message=1000000000`;
         const headers = { 
             "cookie": `golden_key=${config.token}`,
             "x-requested-with": "XMLHttpRequest"
@@ -78,10 +79,8 @@ function getMessages(userId, senderId) {
             headers: headers
         }
 
-        result = fetch(url, options)
-            .then(resp => {
-                return resp.json();
-            });
+        const resp = await fetch(url, options);
+        result = await resp.json();
     } catch (err) {
         log(`Ошибка при получении сообщений: ${err}`);
     }
@@ -108,6 +107,8 @@ async function sendMessage(senderId, message, customNode = false) {
         } else {
             node = senderId;
         }
+
+        message = `[NightBot 🤖]\n\n${message}`;
 
         const request = {
             "action": "chat_message",
@@ -147,4 +148,4 @@ async function sendMessage(senderId, message, customNode = false) {
     return result;
 }
 
-export { getMessages, sendMessage, getChats };
+export { getMessages, sendMessage, getChats, enableAutoResponse };
