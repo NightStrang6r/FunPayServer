@@ -1,12 +1,12 @@
-import request from 'sync-request';
-import config from '../config.js';
+import fetch from 'node-fetch';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
-import { updateFile } from './storage.js';
+import { load, updateFile } from './storage.js';
 
+const config = load('config.json');
 const headers = { "cookie": `golden_key=${config.token}`};
 
-function countTradeProfit() {
+async function countTradeProfit() {
     let result = 0;
     let ordersCount = 0;
     try {
@@ -23,14 +23,16 @@ function countTradeProfit() {
                 first = false;
                 method = 'GET';
             }
-            const res = request(method, `${config.api}/orders/trade`, {
-                headers: headers,
+
+            const options = {
+                method: method,
                 body: data,
-                retry: true,
-                retryDelay: 500,
-                maxRetries: Infinity
-            });
-            const body = res.getBody('utf8');
+                headers: headers
+            };
+    
+            const resp = await fetch(`${config.api}/orders/trade`, options);
+            const body = await resp.text();
+
             const doc = parseDOM(body);
             const items = doc.querySelectorAll(".tc-item");
             const order = items[0].querySelector(".tc-order").innerHTML;
@@ -51,7 +53,7 @@ function countTradeProfit() {
                     result += price;
                 }
             });
-            log(`${ordersCount} ${result}`);
+            log(`Продажи: ${ordersCount}; Заработок: ${result} ₽`);
         }
     } catch (err) {
         log(`Ошибка при подсчёте профита: ${err}`);
@@ -64,19 +66,29 @@ function autoUserDataUpdate(timeout) {
     log(`Автоматический апдейт данных запущен.`);
 }
 
-function getUserData() {
+async function getUserData() {
     let result = false;
     try {
-        const res = request('GET', config.api, {
-            headers: headers,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
-        });
-        const body = res.getBody('utf8');
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
+
+        const resp = await fetch(config.api, options);
+        const body = await resp.text();
+
         const doc = parseDOM(body);
         const appData = JSON.parse(doc.querySelector("body").dataset.appData);
-        const PHPSESSID = res.headers['set-cookie'][0].split(';')[0].split('=')[1];
+
+        let setCookie = "";
+        resp.headers.forEach((val, key) => {
+            if(key == "set-cookie") {
+                setCookie = val;
+                return;
+            }
+        });
+
+        const PHPSESSID = setCookie.split(';')[0].split('=')[1];
 
         if(appData.userId != 0) {
             result = {

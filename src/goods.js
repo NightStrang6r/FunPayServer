@@ -1,4 +1,4 @@
-import request from 'sync-request';
+import fetch from 'node-fetch';
 import { headers } from './account.js';
 import { parseDOM } from './DOMParser.js';
 import { getAllCategories } from './categories.js';
@@ -6,11 +6,11 @@ import { updateFile } from './storage.js';
 import { log } from './log.js';
 import appData from '../data/appData.js';
 
-function updateGoodsState() {
+async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`);
-    const data = { goods: getAllGoods(appData.id) };
+    const data = await getAllGoods(appData.id);
 
-    updateFile(data, `../data/goodsState.js`);
+    updateFile(data, `../data/goodsState.json`);
     log(`Список состояния товаров обновлён.`);
 }
 
@@ -23,12 +23,12 @@ function updateGoodsState() {
     log(`Бэкап создан.`);
 }*/
 
-function getAllGoods(userId, full = false) {
+async function getAllGoods(userId, full = false) {
     let result = [];
     try {
-        const cat = getAllCategories(userId);
+        const cat = await getAllCategories(userId);
         for(let i = 0; i < cat.length; i++) {
-            const goods = getGoodsFromCategory(cat[i], full);
+            const goods = await getGoodsFromCategory(cat[i], full);
             goods.forEach(good => {
                 result[result.length] = good;
             });
@@ -39,17 +39,17 @@ function getAllGoods(userId, full = false) {
     return result;
 }
 
-function getGoodsFromCategory(category, full = false) {
+async function getGoodsFromCategory(category, full = false) {
     let result = [];
     try {
-        const res = request('GET', category, {
-            headers: headers,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
-        });
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
 
-        const body = res.getBody('utf8');
+        const resp = await fetch(category, options);
+        const body = await resp.text();
+
         const doc = parseDOM(body);
         const goodsEl = doc.querySelectorAll(".tc-item");
         for(let i = 0; i < goodsEl.length; i++) {

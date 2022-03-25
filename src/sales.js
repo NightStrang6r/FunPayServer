@@ -1,9 +1,11 @@
 import fetch from 'node-fetch';
 import { log } from './log.js';
-import config from '../config.js';
 import { parseDOM } from './DOMParser.js';
 import { sendMessage } from './chat.js';
 import issue from '../data/autoIssueGoods.js';
+import { load } from './storage.js';
+
+const config = load('config.json');
 
 async function autoIssue(timeout) {
     let backupOrders = await getOrders();

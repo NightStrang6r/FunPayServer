@@ -2,8 +2,10 @@ import fetch from 'node-fetch';
 import { log } from './log.js';
 import appData from '../data/appData.js';
 import { parseDOM } from './DOMParser.js';
-import config from '../config.js';
 import autoRespData from '../data/autoResponse.js';
+import { load } from './storage.js';
+
+const config = load('config.json');
 
 function enableAutoResponse(timeout) {
     setInterval(autoResponse, timeout);

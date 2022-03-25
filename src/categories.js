@@ -1,27 +1,30 @@
-import request from 'sync-request';
-import config from '../config.js';
+import fetch from 'node-fetch';
 import { log } from './log.js';
 import { updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
 import appData from '../data/appData.js';
+import { load } from './storage.js';
 
-function updateCategoriesData() {
+const config = load('config.json');
+
+async function updateCategoriesData() {
     log(`Обновляем спикок категорий...`);
     log(`Получаем список категорий...`);
-    const cat = getAllCategories(appData.id);
+    const cat = await getAllCategories(appData.id);
     log(`Получаем информацию о категориях...`);
-    const data = { lots: getCategoriesData(cat) };
+    const data = await getCategoriesData(cat);
 
-    updateFile(data, `../data/categories.js`);
+    updateFile(data, `../data/categories.json`);
     log(`Список категорий обновлён.`);
 }
 
-function getCategoriesData(categories) {
+async function getCategoriesData(categories) {
     let result = [];
     try {
         for(let i = 0; i < categories.length; i++) {
-            result[i] = getCategoryData(categories[i]);
+            result[i] = await getCategoryData(categories[i]);
+            result[i].name = result[i].name.replace('&nbsp;', ' ');
         }
     } catch (err) {
         log(`Ошибка при получении данных категорий: ${err}`);
@@ -29,17 +32,17 @@ function getCategoriesData(categories) {
     return result;
 }
 
-function getCategoryData(category) {
+async function getCategoryData(category) {
     let result = {};
     try {
-        const res = request('GET', category, {
-            headers: headers,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
-        });
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
+
+        const resp = await fetch(category, options);
+        const body = await resp.text();
         
-        const body = res.getBody('utf8');
         const doc = parseDOM(body);
         const buttonEl = doc.querySelector(".col-sm-6").firstElementChild;
         const textEl = doc.querySelector(".inside");
@@ -54,19 +57,19 @@ function getCategoryData(category) {
     return result;
 }
 
-function getAllCategories() {
+async function getAllCategories() {
     let result = [];
     try {
-        const res = request('GET', `${config.api}/users/${appData.id}/`, {
-            headers: headers,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
-        });
-        const body = res.getBody('utf8');
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
+
+        const resp = await fetch(`${config.api}/users/${appData.id}/`, options);
+        const body = await resp.text();
+
         const doc = parseDOM(body);
         const categories = doc.querySelectorAll(".offer-list-title-button");
-
 
         for(let i = 0; i < categories.length; i++) {
             result[i] = categories[i].firstElementChild.href;

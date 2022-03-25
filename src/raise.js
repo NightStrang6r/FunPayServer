@@ -1,39 +1,59 @@
 import fetch from 'node-fetch';
-import config from '../config.js';
-import categories from '../data/categories.js';
 import { log } from './log.js';
+import { load } from './storage.js';
 
-const raiseUrl = 'https://funpay.com/lots/raise';
-config.headers.cookie = `${config.headers.cookie} golden_key=${config.token}`;
-const headers = config.headers;
-
+const config = load('config.json');
 let raiseCounter = 0;
 
-async function raiseLots(){
-    let lotsCounter = 0;
-    raiseCounter++;
-    log(`===================== Поднятие лотов №${raiseCounter} =====================`);
+async function enableLotsRaise(timeout) {
+    const categories = load('data/categories.json');
+    log(`Автоподнятие запущено.`);
 
-    for(let i = 0; i < categories.lots.length; i++) {
-        const lot = categories.lots[i];
+    raiseLots(categories);
+    setInterval(() => {
+        raiseLots(categories);
+    },
+    timeout);
+}
 
-        lotsCounter++;
-        let res = await raiseLot(lot.game_id, lot.node_id);
-        if(res.success) {
-            log(`[${lotsCounter}] Лот ${lot.name}: ${res.msg}`);
-        } else {
-            log(`Ошибка при поднятии лота ${lot.name}`);
+async function raiseLots(categories){
+    try {
+        let lotsCounter = 0;
+        raiseCounter++;
+        log(`===================== Поднятие лотов №${raiseCounter} =====================`);
+    
+        for(let i = 0; i < categories.length; i++) {
+            const lot = categories[i];
+    
+            lotsCounter++;
+            let res = await raiseLot(lot.game_id, lot.node_id);
+            if(res.success) {
+                log(`[${lotsCounter}] Лот ${lot.name}: ${res.msg}`);
+            } else {
+                log(`Ошибка при поднятии лота ${lot.name}`);
+            }
+    
+            await sleep(0.5);
         }
-
-        await sleep(0.5);
+    } catch (err) {
+        log(`Ошибка при поднятии лотов`);
     }
 }
 
-async function raiseLot(game_id, node_id){
+async function raiseLot(game_id, node_id) {
     try {
+        const raiseUrl = `${config.api}/lots/raise`;
+
         const params = new URLSearchParams();
         params.append('game_id', game_id);
         params.append('node_id', node_id);
+
+        const headers = {
+            "accept": "*/*",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "cookie": `locale=ru; golden_key=${config.token}`,
+            "x-requested-with": "XMLHttpRequest"
+        }
 
         const options = {
             method: 'POST',
@@ -65,7 +85,7 @@ async function raiseLot(game_id, node_id){
 
         return {success: true, msg: res.msg};
     } catch(err) {
-        log(`Ошибка при отправке запроса. Подробности: ${err}`);
+        log(`Ошибка при поднятии лота: ${err}`);
         return {success: false};
     }
 }
@@ -77,4 +97,4 @@ function sleep(n) {
     });
 }
 
-export { raiseLots };
+export { raiseLots, enableLotsRaise };

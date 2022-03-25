@@ -1,23 +1,34 @@
-import request from 'sync-request';
+import fetch from 'node-fetch';
 import { getAllGoods } from './goods.js';
-import goodsState from '../data/goodsState.js';
 import { parseDOM } from './DOMParser.js';
-import config from '../config.js';
 import { log } from './log.js';
 import appData from '../data/appData.js';
+import { load } from './storage.js';
 
-function checkGoodsState() {
+const config = load('config.json');
+let goodsState;
+
+async function enableGoodsStateCheck(timeout) {
+    goodsState = load('data/goodsState.json');
+    log(`Автовосстановление лотов запущено.`);
+
+    setInterval(() => {
+        checkGoodsState();
+    }, timeout);
+}
+
+async function checkGoodsState() {
     try {
         log(`Проверяем состояние товаров на наличие изменений...`);
-        const goodsNow = getAllGoods(appData.id);
-        const goodsBackup = goodsState.goods;
+        const goodsNow = await getAllGoods(appData.id);
+        const goodsBackup = goodsState;
 
         for(let i = 0; i < goodsNow.length; i++) {
             for(let j = 0; j < goodsBackup.length; j++) {
                 if(goodsNow[i].offer_id == goodsBackup[j].offer_id) {
                     if(!goodsNow[i].active && goodsBackup[j].active) {
                         log(`Найдено расхождение: ${goodsNow[i].offer_id} ${goodsNow[i].active}`);
-                        setState(true, goodsNow[i].offer_id, goodsNow[i].node_id);
+                        await setState(true, goodsNow[i].offer_id, goodsNow[i].node_id);
                     }
                 }
             }
@@ -29,7 +40,7 @@ function checkGoodsState() {
     }
 }
 
-function setState(state, offer_id, node_id) {
+async function setState(state, offer_id, node_id) {
     log(`Обновляем состояние товара ${offer_id}...`);
     let result = [];
     try {
@@ -41,18 +52,26 @@ function setState(state, offer_id, node_id) {
             "x-requested-with": "XMLHttpRequest",
             "cookie": `golden_key=${config.token}`
         };
-    
-        const res = request('GET', url, {
-            headers: headers,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
+
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
+
+        const resp = await fetch(url, options);
+        const json = await resp.json();
+
+        const doc = parseDOM(json.html);
+
+        let setCookie = "";
+        resp.headers.forEach((val, key) => {
+            if(key == "set-cookie") {
+                setCookie = val;
+                return;
+            }
         });
 
-        const body = res.getBody('utf8');
-        const json = JSON.parse(body);
-        const doc = parseDOM(json.html);
-        const PHPSESSID = res.headers['set-cookie'][0].split(';')[0].split('=')[1];
+        const PHPSESSID = setCookie.split(';')[0].split('=')[1];
         const inputsEl = doc.querySelectorAll("input");
         const textAreaEl = doc.querySelectorAll("textarea");
         const selectEl = doc.querySelectorAll("select");
@@ -105,7 +124,7 @@ function setState(state, offer_id, node_id) {
             value: "trade"
         };
         
-        saveOffer(inputData, PHPSESSID);
+        await saveOffer(inputData, PHPSESSID);
     } catch(err) {
         log(`Ошибка при обновлении состояния товара: ${err}`);
     }
@@ -113,7 +132,7 @@ function setState(state, offer_id, node_id) {
     return result;
 }
 
-function saveOffer(inputs, PHPSESSID) {
+async function saveOffer(inputs, PHPSESSID) {
     let result = [];
     try {
         const url = `${config.api}/lots/offerSave`;
@@ -129,16 +148,15 @@ function saveOffer(inputs, PHPSESSID) {
             body += `${encodeURIComponent(input.name)}=${encodeURIComponent(input.value)}&`;
         });
 
-        const res = request('POST', url, {
-            headers: headers,
+        const options = {
+            method: 'POST',
             body: body,
-            retry: true,
-            retryDelay: 500,
-            maxRetries: Infinity
-        });
+            headers: headers
+        };
 
-        body = res.getBody('utf8');
-        const json = JSON.parse(body);
+        const resp = await fetch(url, options);
+        const json = await resp.json();
+
         if(json.error) {
             log(`Ошибка при сохранении товара: ${errors}`);
         }
@@ -157,4 +175,4 @@ function getRandomTag() {
     return a;
 }
 
-export { checkGoodsState, setState };
+export { checkGoodsState, setState, enableGoodsStateCheck };
