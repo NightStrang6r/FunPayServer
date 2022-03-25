@@ -1,3 +1,4 @@
+import graphics from './graphics.js';
 import { enableLotsRaise } from './raise.js';
 import { enableGoodsStateCheck } from './activity.js';
 import { updateGoodsState } from './goods.js';
