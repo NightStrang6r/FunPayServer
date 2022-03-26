@@ -116,7 +116,7 @@ async function sendMessage(senderId, message, customNode = false) {
             "action": "chat_message",
             "data": {
                 "node": node,
-                "last_message": 767373447,
+                "last_message": 1767373447,
                 "content": message
             }
         };

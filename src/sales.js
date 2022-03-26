@@ -2,12 +2,12 @@ import fetch from 'node-fetch';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { sendMessage } from './chat.js';
-import issue from '../data/autoIssueGoods.js';
 import { load } from './storage.js';
 
 const config = load('config.json');
+const goods = load('data/autoIssueGoods.json');
 
-async function autoIssue(timeout) {
+async function enableAutoIssue(timeout) {
     let backupOrders = await getOrders();
     let orders = [];
 
@@ -31,11 +31,11 @@ async function autoIssue(timeout) {
         }
     }, timeout);
 
-    log(`Автовыдача запущена.`);
+    log(`Автовыдача запущена, загружено ${goods.length} товара(ов).`);
 }
 
 async function issueGood(buyerId, goodName) {
-    const goods = issue.goods;
+    goods = load('data/autoIssueGoods.json');
     let message = "";
     
     for(let i = 0; i < goods.length; i++) {
@@ -58,7 +58,7 @@ async function issueGood(buyerId, goodName) {
         }
     }
     if(message != "") {
-        //await sendMessage(buyerId, message).then(res => {log(res)});
+        await sendMessage(buyerId, message).then(res => {log(res)});
         log(`Товар ${goodName} выдан пользователю ${buyerId} с сообщением:`);
         log(message);
     } else {
@@ -77,7 +77,7 @@ async function getNewOrders(lastOrders) {
     try {
         orders = await getOrders();
         if(!orders || !orders[0]) {
-            log(`Список новых заказов пуст`);
+            log(`Список продаж пуст`);
             return;
         }
     
@@ -142,4 +142,4 @@ async function getOrders() {
     return result;
 }
 
-export { getOrders, getNewOrders, issueGood, autoIssue };
+export { getOrders, getNewOrders, issueGood, enableAutoIssue };

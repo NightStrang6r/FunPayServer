@@ -1,14 +1,12 @@
-import graphics from './graphics.js';
+import { log } from './log.js';
 import { enableLotsRaise } from './raise.js';
 import { enableGoodsStateCheck } from './activity.js';
 import { updateGoodsState } from './goods.js';
-import { getUserData, autoUserDataUpdate, countTradeProfit } from './account.js';
+import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 import { updateCategoriesData } from './categories.js';
-import { log } from './log.js';
-import { load } from './storage.js';
 
 import { getMessages, sendMessage, getChats, enableAutoResponse } from './chat.js';
-import { getOrders, getNewOrders, issueGood, autoIssue } from './sales.js';
+import { getOrders, getNewOrders, issueGood, enableAutoIssue } from './sales.js';
 import { getAllEmails, getSteamCode } from './email.js';
 
 log(`Получаем данные пользователя...`);
@@ -18,11 +16,11 @@ log(`ID пользователя: ${userData.id}`);
 
 //enableAutoResponse(2000);
 
-//autoUserDataUpdate(3600000);
-//autoIssue(10000);
+//enableUserDataUpdate(3600000);
 
 await updateGoodsState();
-//await updateCategoriesData();
+await updateCategoriesData();
 
+enableLotsRaise(60000);
 enableGoodsStateCheck(120000);
-//enableLotsRaise(60000);
+enableAutoIssue(20000);

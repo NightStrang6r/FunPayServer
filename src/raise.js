@@ -18,25 +18,31 @@ async function enableLotsRaise(timeout) {
 
 async function raiseLots(categories){
     try {
+        let error = false;
         let lotsCounter = 0;
         raiseCounter++;
-        log(`===================== Поднятие лотов №${raiseCounter} =====================`);
+        //log(`===================== Поднятие лотов №${raiseCounter} =====================`);
     
         for(let i = 0; i < categories.length; i++) {
             const lot = categories[i];
     
             lotsCounter++;
             let res = await raiseLot(lot.game_id, lot.node_id);
-            if(res.success) {
-                log(`[${lotsCounter}] Лот ${lot.name}: ${res.msg}`);
+            if(res.success && (res.msg.includes("Подождите") || res.msg.includes("подняты"))) {
+                //log(`[${lotsCounter}] Лот ${lot.name}: ${res.msg}`);
             } else {
-                log(`Ошибка при поднятии лота ${lot.name}`);
+                error = true;
+                log(`Не удалось поднять лот ${lot.name}: ${res.msg}`);
             }
     
             await sleep(0.5);
         }
+
+        if(!error) {
+            log(`Лоты подняты.`);
+        }
     } catch (err) {
-        log(`Ошибка при поднятии лотов`);
+        log(`Ошибка при поднятии лотов: ${err}`);
     }
 }
 

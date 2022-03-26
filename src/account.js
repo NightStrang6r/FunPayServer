@@ -61,7 +61,7 @@ async function countTradeProfit() {
     return result;
 }
 
-function autoUserDataUpdate(timeout) {
+function enableUserDataUpdate(timeout) {
     setInterval(getUserData, timeout);
     log(`Автоматический апдейт данных запущен.`);
 }
@@ -106,4 +106,4 @@ async function getUserData() {
     return result;
 }
 
-export { headers, getUserData, countTradeProfit, autoUserDataUpdate };
+export { headers, getUserData, countTradeProfit, enableUserDataUpdate };
