@@ -61,27 +61,26 @@ async function raiseLot(game_id, node_id) {
             "x-requested-with": "XMLHttpRequest"
         }
 
-        const options = {
+        let options = {
             method: 'POST',
             body: params,
             headers: headers
         };
 
-        const resp = await fetch(raiseUrl, options);
-        const res = await resp.json();
+        let resp = await fetch(raiseUrl, options);
+        let res = await resp.json();
 
         if(res.modal) {
             let reg = new RegExp(`value="(.*?)"`, `g`);
             let regRes = [...res.modal.matchAll(reg)];
-            let modalRaiseBody = raiseBody;
 
             regRes.forEach(id => {
-                modalRaiseBody += `&${encodeURI('node_ids[]')}=${encodeURI(id[1])}`;
+                params.append('node_ids[]', id[1]);
             });
 
             options = {
                 method: 'POST',
-                body: modalRaiseBody,
+                body: params,
                 headers: headers
             };
 

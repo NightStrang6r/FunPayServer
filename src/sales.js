@@ -5,7 +5,7 @@ import { sendMessage } from './chat.js';
 import { load } from './storage.js';
 
 const config = load('config.json');
-const goods = load('data/autoIssueGoods.json');
+let goods = load('data/autoIssueGoods.json');
 
 async function enableAutoIssue(timeout) {
     let backupOrders = await getOrders();
@@ -35,34 +35,38 @@ async function enableAutoIssue(timeout) {
 }
 
 async function issueGood(buyerId, goodName) {
-    goods = load('data/autoIssueGoods.json');
-    let message = "";
+    try {
+        goods = load('data/autoIssueGoods.json');
+        let message = "";
+        
+        for(let i = 0; i < goods.length; i++) {
+            if(goods[i].name == goodName) {
+                if(goods[i].message != undefined) {
+                    message = goods[i].message;
+                    break;
+                } 
+                else
+                if(goods[i].nodes != undefined) {
+                    for(let j = 0; j < goods[i].nodes; j++) {
+                        const node = goods[i].nodes[j];
     
-    for(let i = 0; i < goods.length; i++) {
-        if(goods[i].name == goodName) {
-            if(goods[i].message != undefined) {
-                message = goods[i].message;
-                break;
-            } 
-            else
-            if(goods[i].nodes != undefined) {
-                for(let j = 0; j < goods[i].nodes; j++) {
-                    const node = goods[i].nodes[j];
-
-                    if(!node.sold) {
-                        message = node.message;
-                        break;
+                        if(!node.sold) {
+                            message = node.message;
+                            break;
+                        }
                     }
                 }
             }
         }
-    }
-    if(message != "") {
-        await sendMessage(buyerId, message).then(res => {log(res)});
-        log(`Товар ${goodName} выдан пользователю ${buyerId} с сообщением:`);
-        log(message);
-    } else {
-        log(`Товара ${goodName} нет в списке автовыдачи, пропускаю.`);
+        if(message != "") {
+            await sendMessage(buyerId, message).then(res => {log(res)});
+            log(`Товар ${goodName} выдан пользователю ${buyerId} с сообщением:`);
+            log(message);
+        } else {
+            log(`Товара ${goodName} нет в списке автовыдачи, пропускаю.`);
+        }
+    } catch (err) {
+        log(`Ошибка при выдаче товара: ${err}`);
     }
 }
 
