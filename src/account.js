@@ -96,7 +96,7 @@ async function getUserData() {
                 csrfToken: appData["csrf-token"],
                 sessid: PHPSESSID
             };
-            updateFile(result, '../data/appData.js');
+            updateFile(result, 'data/appData.json');
         } else {
             log(`Необходимо авторизоваться.`);
         }

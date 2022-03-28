@@ -3,18 +3,7 @@ import lodash from 'lodash';
 import { simpleParser }  from 'mailparser';
 import { log } from './log.js';
 
-const config = {
-    imap: {
-        user: '',
-        password: '',
-        host: '',
-        port: 993,
-        tls: true,
-        authTimeout: 3000
-    }
-};
-
-async function getSteamCode() {
+async function getSteamCode(email, pass, server) {
     let code = false;
 
     try {
@@ -23,7 +12,7 @@ async function getSteamCode() {
             "Код Steam Guard, необходимый для входа в аккаунт",
             "Here is the Steam Guard code you need to login to account"
         ];
-        const messages = await getAllEmails();
+        const messages = await getAllEmails(email, pass, server);
     
         for(let i = messages.length - 1; i >= 0; i--) {
             const item = messages[i];
@@ -32,10 +21,10 @@ async function getSteamCode() {
 
             const difference = new Date() - new Date(item.attributes.date);
 
-            if(difference / 60000 > minutes) {
+            /*if(difference / 60000 > minutes) {
                 log(`Новых писем за последние ${minutes} минут не приходило. Mail date: ${item.attributes.date}`);
                 break;
-            }
+            }*/
 
             const all = lodash.find(item.parts, { "which": "TEXT" });
             const id = item.attributes.uid;
@@ -79,7 +68,18 @@ async function getSteamCode() {
     return code;
 }
 
-async function getAllEmails() {
+async function getAllEmails(email, pass, server) {
+    const config = {
+        imap: {
+            user: email,
+            password: pass,
+            host: server,
+            port: 993,
+            tls: true,
+            authTimeout: 3000
+        }
+    };
+
     let messages = false;
     try {
         const connection = await imap.connect(config);

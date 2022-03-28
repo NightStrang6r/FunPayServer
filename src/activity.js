@@ -2,15 +2,15 @@ import fetch from 'node-fetch';
 import { getAllGoods } from './goods.js';
 import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
-import appData from '../data/appData.js';
 import { load } from './storage.js';
 
 const config = load('config.json');
+const appData = load('data/appData.json');
 let goodsState;
 
 async function enableGoodsStateCheck(timeout) {
     goodsState = load('data/goodsState.json');
-    log(`Автовосстановление лотов запущено.`);
+    log(`Автовосстановление лотов запущено, загружено ${goodsState.length} лота(ов).`);
 
     setInterval(() => {
         checkGoodsState();

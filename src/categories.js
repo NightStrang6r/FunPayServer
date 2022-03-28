@@ -3,10 +3,10 @@ import { log } from './log.js';
 import { updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
-import appData from '../data/appData.js';
 import { load } from './storage.js';
 
 const config = load('config.json');
+const appData = load('data/appData.json');
 
 async function updateCategoriesData() {
     log(`Обновляем спикок категорий...`);
@@ -15,7 +15,7 @@ async function updateCategoriesData() {
     log(`Получаем информацию о категориях...`);
     const data = await getCategoriesData(cat);
 
-    updateFile(data, `../data/categories.json`);
+    updateFile(data, `data/categories.json`);
     log(`Список категорий обновлён.`);
 }
 

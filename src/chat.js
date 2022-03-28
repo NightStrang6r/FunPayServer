@@ -1,11 +1,15 @@
 import fetch from 'node-fetch';
 import { log } from './log.js';
-import appData from '../data/appData.js';
 import { parseDOM } from './DOMParser.js';
-import autoRespData from '../data/autoResponse.js';
 import { load } from './storage.js';
+import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
+import { getSteamCode } from './email.js';
 
 const config = load('config.json');
+const appData = load('data/appData.json');
+const autoRespData = load('data/autoResponse.json');
+
+let isAutoRespBusy = false;
 
 function enableAutoResponse(timeout) {
     setInterval(autoResponse, timeout);
@@ -13,22 +17,65 @@ function enableAutoResponse(timeout) {
 }
 
 async function autoResponse() {
+    if(isAutoRespBusy) return;
+    isAutoRespBusy = true;
     let result = false;
 
-    const chats = await getChats();
-    for(let j = 0; j < chats.length; j++) {
-        const chat = chats[j];
-
-        for(let i = 0; i < autoRespData.length; i++) {
+    try {
+        const chats = await getChats();
+        for(let j = 0; j < chats.length; j++) {
+            const chat = chats[j];
+    
             // Command logic here
-            if(chat.message == autoRespData[i].command) {
-                log(`Команда: ${autoRespData[i].command}, ответ: ${autoRespData[i].response} для пользователя ${chat.userName}`);
-                await sendMessage(chat.node, autoRespData[i].response, true);
+    
+            // Commands in file
+            for(let i = 0; i < autoRespData.length; i++) {
+                if(chat.message == autoRespData[i].command) {
+                    log(`Команда: ${autoRespData[i].command}, ответ: ${autoRespData[i].response} для пользователя ${chat.userName}`);
+                    await sendMessage(chat.node, autoRespData[i].response, true);
+                    break;
+                }
+            }
+    
+            // Custom commands
+            if(chat.message.toLowerCase() == "!код") {
+                const orders = await searchOrdersByUserName(chat.userName);
+                if(orders.length == 0) {
+                    await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`, true);
+                    return result;
+                }
+                const order = orders[0];
+                const good = await getGood(order.name);
+                const delivered = good.delivered;
+                let alreadyDelivered = false;
+            
+                for(let i = 0; i < delivered.length; i++) {
+                    if(delivered[i].name == order.buyerName && delivered[i].order == order.id) {
+                        alreadyDelivered = true;
+                        break;
+                    }
+                }
+    
+                if(!alreadyDelivered) {
+                    //sendMessage(chat.node, `Получаем код. Пожалуйста, подождите.`, true);
+                    const code = await getSteamCode(good.email, good.pass, good.server);
+                    if(code) {
+                        const res = await sendMessage(chat.node, `Code: ${code}`, true);
+                        if(res) {
+                            await addDeliveredName(order.name, order.buyerName, order.id);
+                        }
+                    }
+                } else {
+                    await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли какие-то проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`, true);
+                }
                 break;
             }
         }
+    } catch (err) {
+        log(`Ошибка при автоответе: ${err}`);
     }
-    
+
+    isAutoRespBusy = false;
     return result;
 }
 
@@ -110,7 +157,7 @@ async function sendMessage(senderId, message, customNode = false) {
             node = senderId;
         }
 
-        message = `[NightBot 🤖]\n\n${message}`;
+        message = `[🔥NightBot]\n${message}`;
 
         const request = {
             "action": "chat_message",
@@ -136,8 +183,10 @@ async function sendMessage(senderId, message, customNode = false) {
         result = await resp.json();
 
         if(result.response != false) {
+            result = true;
             log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
         } else {
+            result = false;
             log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);
             log(`Request:`);
             console.log(params.toString());

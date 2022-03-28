@@ -44,14 +44,13 @@ function load(uri) {
 
 function updateFile(content, filePath) {
     let result = false;
-    filePath = `${_dirname}/${filePath}`;
+    filePath = `${_dirname}/../${filePath}`;
     try {
         if(!fs.existsSync(filePath)) {
             fs.openSync(filePath, 'w');
         }
 
-        // Fix this later
-        if(filePath.includes('categories.json') || filePath.includes('goodsState.json')) {
+        if(filePath.includes('.json')) {
             fs.writeFileSync(filePath, '');
         } else {
             fs.writeFileSync(filePath, 'export default\n');

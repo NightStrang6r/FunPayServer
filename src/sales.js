@@ -2,10 +2,11 @@ import fetch from 'node-fetch';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { sendMessage } from './chat.js';
-import { load } from './storage.js';
+import { load, updateFile } from './storage.js';
 
+const goodsfilePath = 'data/autoIssueGoods.json';
 const config = load('config.json');
-let goods = load('data/autoIssueGoods.json');
+let goods = load(goodsfilePath);
 
 async function enableAutoIssue(timeout) {
     let backupOrders = await getOrders();
@@ -36,7 +37,7 @@ async function enableAutoIssue(timeout) {
 
 async function issueGood(buyerId, goodName) {
     try {
-        goods = load('data/autoIssueGoods.json');
+        goods = load(goodsfilePath);
         let message = "";
         
         for(let i = 0; i < goods.length; i++) {
@@ -47,27 +48,90 @@ async function issueGood(buyerId, goodName) {
                 } 
                 else
                 if(goods[i].nodes != undefined) {
-                    for(let j = 0; j < goods[i].nodes; j++) {
+                    for(let j = 0; j < goods[i].nodes.length; j++) {
                         const node = goods[i].nodes[j];
     
-                        if(!node.sold) {
+                        if(node.sold == false) {
+                            goods[i].nodes[j].sold = true;
+                            updateFile(goods, goodsfilePath);
                             message = node.message;
                             break;
                         }
                     }
+                    break;
                 }
             }
         }
+
         if(message != "") {
             await sendMessage(buyerId, message).then(res => {log(res)});
-            log(`Товар ${goodName} выдан пользователю ${buyerId} с сообщением:`);
+            log(`Товар "${goodName}" выдан пользователю ${buyerId} с сообщением:`);
             log(message);
         } else {
-            log(`Товара ${goodName} нет в списке автовыдачи, пропускаю.`);
+            log(`Товара "${goodName}" нет в списке автовыдачи, пропускаю.`);
         }
     } catch (err) {
         log(`Ошибка при выдаче товара: ${err}`);
     }
+}
+
+async function getGood(orderName) {
+    let result = [];
+    try {
+        goods = load(goodsfilePath);
+    
+        for(let i = 0; i < goods.length; i++) {
+            if(orderName === goods[i].name) {
+                result = goods[i];
+                break;
+            }
+        }
+    } catch (err) {
+        log(`Ошибка при поиске заказов по нику: ${err}`);
+    }
+
+    return result;
+}
+
+async function addDeliveredName(orderName, name, orderId) {
+    try {
+        goods = load(goodsfilePath);
+        
+        for(let i = 0; i < goods.length; i++) {
+            if(orderName === goods[i].name) {
+                if(goods[i].delivered == undefined) {
+                    goods[i].delivered = [];
+                }
+
+                goods[i].delivered.push({
+                    name: name, order: orderId
+                });
+                updateFile(goods, goodsfilePath);
+                break;
+            }
+        }
+    } catch (err) {
+        log(`Ошибка при записи новых ников к заказу: ${err}`);
+    }
+}
+
+async function searchOrdersByUserName(userName) {
+    let result = [];
+    try {
+        goods = load(goodsfilePath);
+    
+        const orders = await getOrders();
+    
+        for(let i = 0; i < orders.length; i++) {
+            if (orders[i].buyerName == userName) {
+                result[result.length] = orders[i];
+            }
+        }
+    } catch (err) {
+        log(`Ошибка при поиске заказов по нику: ${err}`);
+    }
+
+    return result;
 }
 
 async function getNewOrders(lastOrders) {
@@ -125,6 +189,7 @@ async function getOrders() {
             const order = ordersEl[i];
             const id = order.querySelector(".tc-order").innerHTML;
             const name = order.querySelector(".order-desc").firstElementChild.innerHTML.split(", ")[1];
+            const buyerName = order.querySelector(".media-user-name > span").innerHTML;
             const buyerProfileLink = order.querySelector(".avatar-photo").dataset.href.split("/");
             const buyerId = buyerProfileLink[buyerProfileLink.length - 2];
             const status = order.querySelector(".tc-status").innerHTML;
@@ -134,6 +199,7 @@ async function getOrders() {
                 id: id,
                 name: name,
                 buyerId: buyerId,
+                buyerName: buyerName,
                 status: status,
                 price: price
             }
@@ -146,4 +212,4 @@ async function getOrders() {
     return result;
 }
 
-export { getOrders, getNewOrders, issueGood, enableAutoIssue };
+export { getOrders, getNewOrders, issueGood, searchOrdersByUserName, getGood, addDeliveredName, enableAutoIssue };

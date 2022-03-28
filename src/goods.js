@@ -2,15 +2,16 @@ import fetch from 'node-fetch';
 import { headers } from './account.js';
 import { parseDOM } from './DOMParser.js';
 import { getAllCategories } from './categories.js';
-import { updateFile } from './storage.js';
+import { load, updateFile } from './storage.js';
 import { log } from './log.js';
-import appData from '../data/appData.js';
+
+const appData = load('data/appData.json');
 
 async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`);
     const data = await getAllGoods(appData.id);
 
-    updateFile(data, `../data/goodsState.json`);
+    updateFile(data, `data/goodsState.json`);
     log(`Список состояния товаров обновлён.`);
 }
 
@@ -19,7 +20,7 @@ async function updateGoodsState() {
     const goods = getAllGoods(userId, true);
     const data = { goods: goods };
 
-    updateFile(data, `../data/goodsBackup.js`);
+    updateFile(data, `data/goodsBackup.js`);
     log(`Бэкап создан.`);
 }*/
 
