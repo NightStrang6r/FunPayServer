@@ -79,6 +79,7 @@ async function getUserData() {
 
         const doc = parseDOM(body);
         const appData = JSON.parse(doc.querySelector("body").dataset.appData);
+        const userName = doc.querySelector(".user-link-name").innerHTML;
 
         let setCookie = "";
         resp.headers.forEach((val, key) => {
@@ -94,7 +95,8 @@ async function getUserData() {
             result = {
                 id: appData.userId,
                 csrfToken: appData["csrf-token"],
-                sessid: PHPSESSID
+                sessid: PHPSESSID,
+                userName: userName
             };
             updateFile(result, 'data/appData.json');
         } else {

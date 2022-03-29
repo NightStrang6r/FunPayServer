@@ -5,6 +5,7 @@ import { log } from './log.js';
 
 async function getSteamCode(email, pass, server) {
     let code = false;
+    let result = {code: code, error: false, msg: ""};
 
     try {
         const minutes = 10;
@@ -21,10 +22,11 @@ async function getSteamCode(email, pass, server) {
 
             const difference = new Date() - new Date(item.attributes.date);
 
-            /*if(difference / 60000 > minutes) {
+            if(difference / 60000 > minutes) {
+                result = {code: code, error: true, msg: "no-new-mails"};
                 log(`Новых писем за последние ${minutes} минут не приходило. Mail date: ${item.attributes.date}`);
                 break;
-            }*/
+            }
 
             const all = lodash.find(item.parts, { "which": "TEXT" });
             const id = item.attributes.uid;
@@ -65,7 +67,11 @@ async function getSteamCode(email, pass, server) {
         log(`Ошибка при парсинге кода Steam Guard: ${err}`);
     }
 
-    return code;
+    if(!result.error) {
+        result = {code: code, error: false, msg: ""};
+    }
+    
+    return result;
 }
 
 async function getAllEmails(email, pass, server) {

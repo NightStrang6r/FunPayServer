@@ -12,17 +12,15 @@ import { getAllEmails, getSteamCode } from './email.js';
 log(`Получаем данные пользователя...`);
 const userData = await getUserData();
 if(!userData) process.exit();
-log(`ID пользователя: ${userData.id}`);
-
-//console.log(await searchOrdersByUserName("Camanch"));
+log(`Привет, ${userData.userName}!`);
 
 enableAutoResponse(2000);
 
 //enableUserDataUpdate(3600000);
 
-/*await updateGoodsState();
+await updateGoodsState();
 await updateCategoriesData();
 
 enableLotsRaise(60000);
 enableGoodsStateCheck(120000);
-enableAutoIssue(20000);*/
+enableAutoIssue(20000);

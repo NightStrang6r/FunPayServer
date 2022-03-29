@@ -58,7 +58,18 @@ async function autoResponse() {
     
                 if(!alreadyDelivered) {
                     //sendMessage(chat.node, `Получаем код. Пожалуйста, подождите.`, true);
-                    const code = await getSteamCode(good.email, good.pass, good.server);
+                    const codeResult = await getSteamCode(good.email, good.pass, good.server);
+                    let code = false;
+
+                    if(codeResult.error != true) {
+                        code = codeResult.code;
+                    } else {
+                        if(codeResult.msg == "no-new-mails") {
+                            await sendMessage(chat.node, `На данный момент новых кодов нет. Убедитесь, что вошли в нужный аккаунт в нужном лаунчере, либо попробуйте ещё раз через минуту.`, true);
+                            return result;
+                        }
+                    }
+
                     if(code) {
                         const res = await sendMessage(chat.node, `Code: ${code}`, true);
                         if(res) {
@@ -66,7 +77,7 @@ async function autoResponse() {
                         }
                     }
                 } else {
-                    await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли какие-то проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`, true);
+                    await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`, true);
                 }
                 break;
             }
@@ -157,7 +168,7 @@ async function sendMessage(senderId, message, customNode = false) {
             node = senderId;
         }
 
-        message = `[🔥NightBot]\n${message}`;
+        message = `[ 🔥NightBot ]\n${message}`;
 
         const request = {
             "action": "chat_message",

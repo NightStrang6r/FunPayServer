@@ -1,11 +1,13 @@
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { log } from './log.js';
+import { log, getDate } from './log.js';
 
-const dataFolder = 'data';
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
+
+const dataFolder = 'data';
+const logPath = `${_dirname}/../${dataFolder}/log/`;
 
 function initStorage() {
     const files = [
@@ -56,7 +58,7 @@ function updateFile(content, filePath) {
             fs.writeFileSync(filePath, 'export default\n');
         }
         
-        fs.appendFileSync(filePath, JSON.stringify(content, null, 2));
+        fs.appendFileSync(filePath, JSON.stringify(content, null, 4));
         result = true;
     } catch(err) {
         log(`Ошибка записи файла: ${err}`);
@@ -65,4 +67,22 @@ function updateFile(content, filePath) {
     return result;
 }
 
-export { updateFile, initStorage, load };
+async function logToFile(msg) {
+    try {
+        if(!fs.existsSync(logPath)) {
+            fs.mkdirSync(logPath);
+        }
+
+        const time = getDate();
+        const logFile = `${logPath}log-${time.day}-${time.month}-${time.year}.txt`;
+        if(!fs.existsSync(logFile)) {
+            fs.writeFileSync(logFile, '');
+        }
+
+        fs.appendFileSync(logFile, `${msg}\n`);
+    } catch(err) {
+        console.log(`Ошибка записи файла: ${err}`);
+    }
+}
+
+export { updateFile, initStorage, load, logToFile };

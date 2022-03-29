@@ -1,9 +1,12 @@
+import { logToFile } from './storage.js';
+
 const logo = `
 █▀▀ █░░█ █▄░█ █▀▄ ▄▀▄ █░█ . ▄▀▀ █▀▀ █▀▄ █░░░█ █▀▀ █▀▄
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
-const text = 'By NightStranger\n';
+const version = 'v0.1';
+const by = 'By NightStranger\n';
 
 const colors = {
     Reset: "\x1b[0m",
@@ -24,6 +27,14 @@ const colors = {
     FgWhite: "\x1b[37m",
 };
 
+const enableFileLog = true;
+let logBuffer = [];
+
+if(enableFileLog) {
+    logBuffer[0] = "---NewLoad---";
+    setInterval(logInterval, 30000);
+}
+
 printLogo();
 
 function printLogo() {
@@ -31,11 +42,36 @@ function printLogo() {
         console.log(`${colors[key]}`, `${key}\n${text}`, `\x1b[0m`);
     }*/
     console.log(`${colors['Blink']}${logo}\x1b[0m`);
-    console.log(`${colors['FgCyan']}v0.1\x1b[0m`);
-    console.log(`${colors['FgMagenta']}${text}\x1b[0m`);
+    console.log(`${colors['FgCyan']}${version}\x1b[0m`);
+    console.log(`${colors['FgMagenta']}${by}\x1b[0m`);
 }
 
 function log(msg, err = false) {
+    const date = getDate();
+    const logMsg = `>[${date.day}.${date.month}.${date.year}] [${date.hour}:${date.minute}:${date.second}]: ${msg}`;
+
+    if(typeof msg != 'object') {
+        console.log(logMsg);
+        if(enableFileLog) {
+            logBuffer[logBuffer.length] = logMsg;
+        }
+    } else {
+        console.log(msg);
+        if(enableFileLog) {
+            logBuffer[logBuffer.length] = msg;
+        }
+    }
+}
+
+function logInterval() {
+    if(logBuffer.length <= 0) return;
+    
+    let msg = logBuffer.join('\n');
+    logToFile(msg);
+    logBuffer = [];
+}
+
+function getDate() {
     const date = new Date();
 
     let day = date.getDate();
@@ -56,14 +92,14 @@ function log(msg, err = false) {
     if(second.toString().length == 1)
         second = `0${second}`;
 
-    const logText = `>[${day}.${month}.${year}] [${hour}:${minute}:${second}]: ${msg}`;
-    if(!err) {
-        console.log(logText);
-    } else {
-        console.error(logText);
+    return {
+        day: day,
+        month: month,
+        year: year,
+        hour: hour,
+        minute: minute,
+        second: second
     }
-    if(typeof msg == 'object')
-        console.log(msg);
 }
 
-export { log, printLogo };
+export { log, printLogo, getDate };
