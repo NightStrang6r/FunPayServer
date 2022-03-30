@@ -6,8 +6,8 @@ import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './
 import { getSteamCode } from './email.js';
 
 const config = load('config.json');
-const appData = load('data/appData.json');
 const autoRespData = load('data/autoResponse.json');
+let appData = load('data/appData.json');
 
 let isAutoRespBusy = false;
 
@@ -38,6 +38,18 @@ async function autoResponse() {
             }
     
             // Custom commands
+
+            if(chat.message.includes("!теставтовыдачи")) {
+                const goodName = chat.message.split(`"`)[1];
+                const good = await getGood(goodName);
+                    
+                if(good) {
+                    await issueGood(1664916, goodName);
+                } else {
+                    await sendMessage(chat.node, `Товар не найден в списке автовыдачи.`, true);
+                }
+            }
+
             if(chat.message.toLowerCase() == "!код") {
                 const orders = await searchOrdersByUserName(chat.userName);
                 if(orders.length == 0) {
@@ -154,6 +166,8 @@ async function sendMessage(senderId, message, customNode = false) {
     let node = "";
 
     try {
+        appData = load('data/appData.json');
+
         const url = `${config.api}/runner/`;
         const headers = {
             "accept": "*/*",
@@ -174,7 +188,7 @@ async function sendMessage(senderId, message, customNode = false) {
             "action": "chat_message",
             "data": {
                 "node": node,
-                "last_message": 1767373447,
+                "last_message": 2000000000,
                 "content": message
             }
         };

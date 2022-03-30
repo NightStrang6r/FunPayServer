@@ -6,6 +6,12 @@ import { load, updateFile } from './storage.js';
 const config = load('config.json');
 const headers = { "cookie": `golden_key=${config.token}`};
 
+let appData = load('data/appData.json');
+if(!appData.id) {
+    const userData = await getUserData();
+    if(!userData) process.exit();
+}
+
 async function countTradeProfit() {
     let result = 0;
     let ordersCount = 0;

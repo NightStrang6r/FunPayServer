@@ -27,14 +27,14 @@ async function checkGoodsState() {
             for(let j = 0; j < goodsBackup.length; j++) {
                 if(goodsNow[i].offer_id == goodsBackup[j].offer_id) {
                     if(!goodsNow[i].active && goodsBackup[j].active) {
-                        log(`Найдено расхождение: ${goodsNow[i].offer_id} ${goodsNow[i].active}`);
+                        //log(`Найдено расхождение: ${goodsNow[i].offer_id} ${goodsNow[i].active}`);
                         await setState(true, goodsNow[i].offer_id, goodsNow[i].node_id);
                     }
                 }
             }
         }
 
-        log(`Проверка состояния товаров завершена.`);
+        //log(`Проверка состояния товаров завершена.`);
     } catch (err) {
         log(`Ошибка при проверке активности лотов: ${err}`);
     }

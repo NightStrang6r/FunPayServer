@@ -7,7 +7,7 @@ let raiseCounter = 0;
 
 async function enableLotsRaise(timeout) {
     const categories = load('data/categories.json');
-    log(`Автоподнятие запущено.`);
+    log(`Автоподнятие запущено, загружено ${categories.length} категория(ий).`);
 
     raiseLots(categories);
     setInterval(() => {

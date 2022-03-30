@@ -9,10 +9,10 @@ const config = load('config.json');
 const appData = load('data/appData.json');
 
 async function updateCategoriesData() {
-    log(`Обновляем спикок категорий...`);
-    log(`Получаем список категорий...`);
+    log(`Обновляем список категорий...`);
+    //log(`Получаем список категорий...`);
     const cat = await getAllCategories(appData.id);
-    log(`Получаем информацию о категориях...`);
+    //log(`Получаем информацию о категориях...`);
     const data = await getCategoriesData(cat);
 
     updateFile(data, `data/categories.json`);

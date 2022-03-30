@@ -14,8 +14,6 @@ const userData = await getUserData();
 if(!userData) process.exit();
 log(`Привет, ${userData.userName}!`);
 
-enableAutoResponse(2000);
-
 //enableUserDataUpdate(3600000);
 
 await updateGoodsState();
@@ -24,3 +22,4 @@ await updateCategoriesData();
 enableLotsRaise(60000);
 enableGoodsStateCheck(120000);
 enableAutoIssue(20000);
+enableAutoResponse(2000);

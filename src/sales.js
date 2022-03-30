@@ -17,7 +17,7 @@ async function enableAutoIssue(timeout) {
             log(`Проверяем на наличие новых заказов...`);
             orders = await getNewOrders(backupOrders);
             if(!orders || !orders.newOrders[0]) {
-                log(`Новых заказов нет.`);
+                //log(`Новых заказов нет.`);
                 return;
             }
             log(orders.newOrders);
@@ -76,12 +76,12 @@ async function issueGood(buyerId, goodName) {
 }
 
 async function getGood(orderName) {
-    let result = [];
+    let result = false;
     try {
         goods = load(goodsfilePath);
     
         for(let i = 0; i < goods.length; i++) {
-            if(orderName === goods[i].name) {
+            if(orderName == goods[i].name) {
                 result = goods[i];
                 break;
             }
