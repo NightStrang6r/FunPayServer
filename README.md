@@ -1,2 +1,2 @@
-# FunPayAutoUP
-CLI app for lots auto up on FunPay
+# FunPayServer
+CLI app for auto-managing your FunPay account
