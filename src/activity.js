@@ -3,6 +3,8 @@ import { getAllGoods } from './goods.js';
 import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
 import { load } from './storage.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 const config = load('config.json');
 const appData = load('data/appData.json');
@@ -59,6 +61,7 @@ async function setState(state, offer_id, node_id) {
         };
 
         const resp = await fetch(url, options);
+        await delays.sleep();
         const json = await resp.json();
 
         const doc = parseDOM(json.html);
@@ -155,6 +158,7 @@ async function saveOffer(inputs, PHPSESSID) {
         };
 
         const resp = await fetch(url, options);
+        await delays.sleep();
         const json = await resp.json();
 
         if(json.error) {

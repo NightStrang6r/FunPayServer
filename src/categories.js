@@ -4,6 +4,8 @@ import { updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
 import { load } from './storage.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 const config = load('config.json');
 const appData = load('data/appData.json');
@@ -41,6 +43,7 @@ async function getCategoryData(category) {
         };
 
         const resp = await fetch(category, options);
+        await delays.sleep();
         const body = await resp.text();
         
         const doc = parseDOM(body);
@@ -66,6 +69,7 @@ async function getAllCategories() {
         };
 
         const resp = await fetch(`${config.api}/users/${appData.id}/`, options);
+        await delays.sleep();
         const body = await resp.text();
 
         const doc = parseDOM(body);

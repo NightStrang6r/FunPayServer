@@ -4,6 +4,8 @@ import { parseDOM } from './DOMParser.js';
 import { getAllCategories } from './categories.js';
 import { load, updateFile } from './storage.js';
 import { log } from './log.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 let appData = load('data/appData.json');
 
@@ -49,6 +51,7 @@ async function getGoodsFromCategory(category, full = false) {
         };
 
         const resp = await fetch(category, options);
+        await delays.sleep();
         const body = await resp.text();
 
         const doc = parseDOM(body);

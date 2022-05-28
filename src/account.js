@@ -2,6 +2,8 @@ import fetch from 'node-fetch';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { load, updateFile } from './storage.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 const config = load('config.json');
 const headers = { "cookie": `golden_key=${config.token}`};
@@ -37,6 +39,7 @@ async function countTradeProfit() {
             };
     
             const resp = await fetch(`${config.api}/orders/trade`, options);
+            await delays.sleep();
             const body = await resp.text();
 
             const doc = parseDOM(body);
@@ -81,6 +84,7 @@ async function getUserData() {
         };
 
         const resp = await fetch(config.api, options);
+        await delays.sleep();
         const body = await resp.text();
 
         const doc = parseDOM(body);

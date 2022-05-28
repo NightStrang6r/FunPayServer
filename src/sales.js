@@ -3,6 +3,8 @@ import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { sendMessage } from './chat.js';
 import { load, updateFile } from './storage.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 const goodsfilePath = 'data/autoIssueGoods.json';
 const config = load('config.json');
@@ -179,7 +181,8 @@ async function getOrders() {
             headers: headers
         }
 
-        let resp = await fetch(url, options)
+        let resp = await fetch(url, options);
+        await delays.sleep();
         
         const data = await resp.text();
         const doc = parseDOM(data);

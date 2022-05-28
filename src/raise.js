@@ -1,6 +1,8 @@
 import fetch from 'node-fetch';
 import { log } from './log.js';
 import { load } from './storage.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 const config = load('config.json');
 let raiseCounter = 0;
@@ -68,6 +70,7 @@ async function raiseLot(game_id, node_id) {
         };
 
         let resp = await fetch(raiseUrl, options);
+        await delays.sleep();
         let res = await resp.json();
 
         if(res.modal) {
@@ -85,6 +88,7 @@ async function raiseLot(game_id, node_id) {
             };
 
             resp = await fetch(raiseUrl, options);
+            await delays.sleep();
             res = await resp.json();
         }
 

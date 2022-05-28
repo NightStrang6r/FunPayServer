@@ -4,6 +4,8 @@ import { parseDOM } from './DOMParser.js';
 import { load } from './storage.js';
 import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
 import { getSteamCode } from './email.js';
+import Delays from './delays.js';
+const delays = new Delays();
 
 const config = load('config.json');
 const autoRespData = load('data/autoResponse.json');
@@ -116,6 +118,7 @@ async function getChats() {
         }
 
         const resp = await fetch(url, options);
+        await delays.sleep();
         const text = await resp.text();
 
         const doc = parseDOM(text);
@@ -152,6 +155,7 @@ async function getMessages(senderId) {
         }
 
         const resp = await fetch(url, options);
+        await delays.sleep();
         result = await resp.json();
     } catch (err) {
         log(`Ошибка при получении сообщений: ${err}`);
@@ -205,6 +209,7 @@ async function sendMessage(senderId, message, customNode = false) {
         };
 
         const resp = await fetch(url, options);
+        await delays.sleep();
         result = await resp.json();
 
         if(result.response != false) {
