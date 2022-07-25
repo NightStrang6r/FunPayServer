@@ -17,8 +17,8 @@ log(`Привет, ${userData.userName}!`);
 await updateCategoriesData();
 await updateGoodsState();
 
-enableLotsRaise(60000);
+enableLotsRaise(120000);
 enableGoodsStateCheck(120000);
 enableAutoIssue(20000);
-enableAutoResponse(2000);
+//enableAutoResponse(2000);
 enableUserDataUpdate(100000);

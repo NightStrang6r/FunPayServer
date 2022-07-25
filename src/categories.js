@@ -60,7 +60,7 @@ async function getCategoryData(category) {
     return result;
 }
 
-async function getAllCategories() {
+async function getAllCategories(id) {
     let result = [];
     try {
         const options = {
@@ -68,7 +68,7 @@ async function getAllCategories() {
             headers: headers
         };
 
-        const resp = await fetch(`${config.api}/users/${appData.id}/`, options);
+        const resp = await fetch(`${config.api}/users/${id}/`, options);
         await delays.sleep();
         const body = await resp.text();
 
