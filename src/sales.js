@@ -43,7 +43,7 @@ async function issueGood(buyerId, goodName) {
         let message = "";
         
         for(let i = 0; i < goods.length; i++) {
-            if(goods[i].name == goodName) {
+            if(goodName.includes(goods[i].name)) {
                 if(goods[i].message != undefined) {
                     message = goods[i].message;
                     break;
@@ -191,7 +191,7 @@ async function getOrders() {
         for(let i = 0; i < ordersEl.length; i++) {
             const order = ordersEl[i];
             const id = order.querySelector(".tc-order").innerHTML;
-            const name = order.querySelector(".order-desc").firstElementChild.innerHTML.split(", ")[1];
+            const name = order.querySelector(".order-desc").firstElementChild.innerHTML;
             const buyerName = order.querySelector(".media-user-name > span").innerHTML;
             const buyerProfileLink = order.querySelector(".avatar-photo").dataset.href.split("/");
             const buyerId = buyerProfileLink[buyerProfileLink.length - 2];
