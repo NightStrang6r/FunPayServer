@@ -212,20 +212,19 @@ async function sendMessage(senderId, message, customNode = false) {
         await delays.sleep();
         result = await resp.json();
 
-        if(result.response != false) {
+        if(result.response && result.response.error == null) {
             log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
             log(`Запрос:`);
             log(options);
-            log(params.toString());
             log(`Ответ:`);
             log(result);
             result = true;
         } else {
             log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);
-            log(`Request:`);
-            console.log(params.toString());
-            log(`Response:`);
-            console.log(result);
+            log(`Запрос:`);
+            log(options);
+            log(`Ответ:`);
+            log(result);
             result = false;
         }
     } catch (err) {
