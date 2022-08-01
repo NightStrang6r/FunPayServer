@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch from './fetch.js';
 import { headers } from './account.js';
 import { parseDOM } from './DOMParser.js';
 import { getAllCategories } from './categories.js';

@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch from './fetch.js';
 import { log } from './log.js';
 import { load } from './storage.js';
 import Delays from './delays.js';

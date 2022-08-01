@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { load } from './storage.js';
@@ -215,6 +215,11 @@ async function sendMessage(senderId, message, customNode = false) {
         if(result.response != false) {
             result = true;
             log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
+            log(`Запрос:`);
+            log(options);
+            log(params.toString());
+            log(`Ответ:`);
+            log(result);
         } else {
             result = false;
             log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);

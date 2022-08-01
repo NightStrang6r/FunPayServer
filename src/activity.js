@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch from './fetch.js';
 import { getAllGoods } from './goods.js';
 import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
