@@ -168,66 +168,74 @@ async function sendMessage(senderId, message, customNode = false) {
     if(!message || message == undefined || !senderId || senderId == undefined) return;
 
     let result = false;
+    let maxRetries = 10;
+    let tries = 1;
     let node = "";
 
     try {
-        await getUserData();
-        appData = load('data/appData.json');
+        while(result == false) {
+            if(tries > maxRetries) break;
 
-        const url = `${config.api}/runner/`;
-        const headers = {
-            "accept": "*/*",
-            "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
-            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "x-requested-with": "XMLHttpRequest"
-        };
+            await getUserData();
+            appData = load('data/appData.json');
 
-        if(!customNode) {
-            node = `users-${appData.id}-${senderId}`;
-        } else {
-            node = senderId;
-        }
+            const url = `${config.api}/runner/`;
+            const headers = {
+                "accept": "*/*",
+                "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "x-requested-with": "XMLHttpRequest"
+            };
 
-        message = `[ 🔥NightBot ]\n${message}`;
-
-        const request = {
-            "action": "chat_message",
-            "data": {
-                "node": node,
-                "last_message": 2000000000,
-                "content": message
+            if(!customNode) {
+                node = `users-${appData.id}-${senderId}`;
+            } else {
+                node = senderId;
             }
-        };
 
-        const params = new URLSearchParams();
-        params.append('objects', "");
-        params.append('request', JSON.stringify(request));
-        params.append('csrf_token', appData.csrfToken);
+            message = `[ 🔥NightBot ]\n${message}`;
 
-        const options = {
-            method: 'POST',
-            body: params,
-            headers: headers
-        };
+            const request = {
+                "action": "chat_message",
+                "data": {
+                    "node": node,
+                    "last_message": 2000000000,
+                    "content": message
+                }
+            };
 
-        const resp = await fetch(url, options);
-        await delays.sleep();
-        result = await resp.json();
+            const params = new URLSearchParams();
+            params.append('objects', "");
+            params.append('request', JSON.stringify(request));
+            params.append('csrf_token', appData.csrfToken);
 
-        if(result.response && result.response.error == null) {
-            log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
-            log(`Запрос:`);
-            log(options);
-            log(`Ответ:`);
-            log(result);
-            result = true;
-        } else {
-            log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);
-            log(`Запрос:`);
-            log(options);
-            log(`Ответ:`);
-            log(result);
-            result = false;
+            const options = {
+                method: 'POST',
+                body: params,
+                headers: headers
+            };
+
+            const resp = await fetch(url, options);
+            await delays.sleep();
+            const json = await resp.json();
+
+            if(json.response && json.response.error == null) {
+                log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
+                log(`Запрос:`);
+                log(options);
+                log(`Ответ:`);
+                log(json);
+                result = true;
+            } else {
+                log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);
+                log(`Запрос:`);
+                log(options);
+                log(`Ответ:`);
+                log(json);
+                result = false;
+            }
+
+            tries++;
         }
     } catch (err) {
         log(`Ошибка при отправке сообщения: ${err}`);

@@ -5,7 +5,7 @@ const logo = `
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
-const version = 'v0.1';
+const version = 'v0.1.1';
 const by = 'By NightStranger\n';
 
 const colors = {
