@@ -3,7 +3,7 @@ export default class Delays {
 
     }
     
-    sleep(timeout = 1) {
+    sleep(timeout = 1000) {
         return new Promise(function(resolve, reject) {
             setTimeout(resolve, timeout);
         });
