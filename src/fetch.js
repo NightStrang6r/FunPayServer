@@ -8,7 +8,14 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
         let res = await fetch(url, options);
 
         while(!res.ok) {
-            if(tries > retries) break;
+            if(tries > retries) {
+                log(`Превышено количество попыток запроса.`);
+                log(`Request:`);
+                log(options);
+                log(`Response:`);
+                log(res);
+                break;
+            };
             await sleep(2000);
             res = await fetch(url, options);
             tries++;

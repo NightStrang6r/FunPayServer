@@ -4,6 +4,7 @@ import { parseDOM } from './DOMParser.js';
 import { load } from './storage.js';
 import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
 import { getSteamCode } from './email.js';
+import { getUserData } from './account.js';
 import Delays from './delays.js';
 const delays = new Delays();
 
@@ -170,6 +171,7 @@ async function sendMessage(senderId, message, customNode = false) {
     let node = "";
 
     try {
+        await getUserData();
         appData = load('data/appData.json');
 
         const url = `${config.api}/runner/`;

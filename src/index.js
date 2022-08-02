@@ -20,5 +20,5 @@ await updateGoodsState();
 enableLotsRaise(120000);
 enableGoodsStateCheck(120000);
 enableAutoIssue(20000);
-//enableAutoResponse(2000);
+//enableAutoResponse(5000);
 enableUserDataUpdate(100000);

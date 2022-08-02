@@ -6,7 +6,7 @@ import Delays from './delays.js';
 const delays = new Delays();
 
 const config = load('config.json');
-const headers = { "cookie": `golden_key=${config.token}`};
+const headers = { "cookie": `golden_key=${config.token};`};
 
 let appData = load('data/appData.json');
 if(!appData.id) {
@@ -108,6 +108,8 @@ async function getUserData() {
                 sessid: PHPSESSID,
                 userName: userName
             };
+            //log('Данные обновлены:');
+            //log(result);
             updateFile(result, 'data/appData.json');
         } else {
             log(`Необходимо авторизоваться.`);
