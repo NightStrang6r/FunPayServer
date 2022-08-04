@@ -193,14 +193,13 @@ async function sendMessage(senderId, message, customNode = false) {
                 node = senderId;
             }
 
-            message = `[ 🔥NightBot ]\n${message}`;
+            let reqMessage = `[ 🔥NightBot ]\n${message}`;
 
             const request = {
                 "action": "chat_message",
                 "data": {
                     "node": node,
-                    "last_message": 2000000000,
-                    "content": message
+                    "content": reqMessage
                 }
             };
 
@@ -220,14 +219,14 @@ async function sendMessage(senderId, message, customNode = false) {
             const json = await resp.json();
 
             if(json.response && json.response.error == null) {
-                log(`Сообщение отправлено, node: "${node}", сообщение: "${message}"`);
+                log(`Сообщение отправлено, node: "${node}", сообщение: "${reqMessage}"`);
                 log(`Запрос:`);
                 log(options);
                 log(`Ответ:`);
                 log(json);
                 result = true;
             } else {
-                log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${message}"`);
+                log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${reqMessage}"`);
                 log(`Запрос:`);
                 log(options);
                 log(`Ответ:`);
