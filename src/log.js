@@ -58,7 +58,7 @@ function log(msg, err = false) {
     } else {
         console.log(msg);
         if(enableFileLog) {
-            logBuffer[logBuffer.length] = msg;
+            logBuffer[logBuffer.length] = JSON.stringify(msg);
         }
     }
 }
