@@ -28,6 +28,6 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
 }
 
 function sleep(delay) {
-    if(delay == 0) return;
+    if(delay == 0) return Promise.resolve();
     return new Promise(resolve => setTimeout(resolve, delay));
 }

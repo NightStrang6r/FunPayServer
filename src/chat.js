@@ -168,8 +168,9 @@ async function sendMessage(senderId, message, customNode = false) {
     if(!message || message == undefined || !senderId || senderId == undefined) return;
 
     let result = false;
-    let maxRetries = 10;
+    let maxRetries = 6;
     let tries = 1;
+    let delay = 0;
     let node = "";
 
     try {
@@ -214,7 +215,7 @@ async function sendMessage(senderId, message, customNode = false) {
                 headers: headers
             };
 
-            const resp = await fetch(url, options);
+            const resp = await fetch(url, options, delay);
             await delays.sleep();
             const json = await resp.json();
 
@@ -235,6 +236,7 @@ async function sendMessage(senderId, message, customNode = false) {
             }
 
             tries++;
+            delay += 10000;
         }
     } catch (err) {
         log(`Ошибка при отправке сообщения: ${err}`);

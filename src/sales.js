@@ -66,7 +66,7 @@ async function issueGood(buyerId, goodName) {
         }
 
         if(message != "") {
-            let result = await sendMessage(buyerId, message).then(res => {log(res)});
+            let result = await sendMessage(buyerId, message);
             if(result) {
                 log(`Товар "${goodName}" выдан пользователю ${buyerId} с сообщением:`);
                 log(message);
