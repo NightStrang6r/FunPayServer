@@ -64,7 +64,7 @@ async function getSteamCode(email, pass, server) {
                 break;
         }
     } catch (err) {
-        log(`Ошибка при парсинге кода Steam Guard: ${err}`);
+        log(`Ошибка при парсинге кода Steam Guard: ${err}`, 'r');
     }
 
     if(!result.error) {
@@ -104,7 +104,7 @@ async function getAllEmails(email, pass, server) {
     
         await connection.end();
     } catch(err) {
-        log(`Ошибка при получении почты: ${err}`);
+        log(`Ошибка при получении почты: ${err}`, 'r');
     }
     
     return messages;

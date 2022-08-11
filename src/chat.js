@@ -1,14 +1,13 @@
 import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
-import { load } from './storage.js';
+import { load, loadSettings, getConst } from './storage.js';
 import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
 import { getSteamCode } from './email.js';
 import { getUserData } from './account.js';
-import Delays from './delays.js';
-const delays = new Delays();
+import { getRandomTag } from './activity.js';
 
-const config = load('config.json');
+const config = loadSettings();
 const autoRespData = load('data/autoResponse.json');
 let appData = load('data/appData.json');
 
@@ -98,7 +97,7 @@ async function autoResponse() {
             }
         }
     } catch (err) {
-        log(`Ошибка при автоответе: ${err}`);
+        log(`Ошибка при автоответе: ${err}`, 'r');
     }
 
     isAutoRespBusy = false;
@@ -108,7 +107,7 @@ async function autoResponse() {
 async function getChats() {
     let result = [];
     try {
-        const url = `${config.api}/chat/`;
+        const url = `${getConst('api')}/chat/`;
         const headers = { 
             "cookie": `golden_key=${config.token}`
         };
@@ -119,7 +118,6 @@ async function getChats() {
         }
 
         const resp = await fetch(url, options);
-        await delays.sleep();
         const text = await resp.text();
 
         const doc = parseDOM(text);
@@ -136,7 +134,7 @@ async function getChats() {
             };
         }
     } catch (err) {
-        log(`Ошибка при получении чатов: ${err}`);
+        log(`Ошибка при получении чатов: ${err}`, 'r');
     }
     return result;
 }
@@ -144,7 +142,7 @@ async function getChats() {
 async function getMessages(senderId) {
     let result = false;
     try {
-        const url = `${config.api}/chat/history?node=users-${appData.id}-${senderId}&last_message=1000000000`;
+        const url = `${getConst('api')}/chat/history?node=users-${appData.id}-${senderId}&last_message=1000000000`;
         const headers = { 
             "cookie": `golden_key=${config.token}`,
             "x-requested-with": "XMLHttpRequest"
@@ -156,12 +154,28 @@ async function getMessages(senderId) {
         }
 
         const resp = await fetch(url, options);
-        await delays.sleep();
         result = await resp.json();
     } catch (err) {
-        log(`Ошибка при получении сообщений: ${err}`);
+        log(`Ошибка при получении сообщений: ${err}`, 'r');
     }
     return result;
+}
+
+async function getLastMessageId(senderId) {
+    let lastMessageId = 1000000000;
+    try {
+        
+        let chat = await getMessages(senderId);
+        if(!chat) return lastMessageId;
+        chat = chat['chat'];
+
+        const messages = chat.messages;
+        lastMessageId = messages[messages.length - 1].id;
+    } catch (err) {
+        log(`Ошибка при получении id сообщения: ${err}`, 'r');
+    }
+
+    return lastMessageId;
 }
 
 async function sendMessage(senderId, message, customNode = false) {
@@ -180,7 +194,7 @@ async function sendMessage(senderId, message, customNode = false) {
             await getUserData();
             appData = load('data/appData.json');
 
-            const url = `${config.api}/runner/`;
+            const url = `${getConst('api')}/runner/`;
             const headers = {
                 "accept": "*/*",
                 "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
@@ -194,18 +208,60 @@ async function sendMessage(senderId, message, customNode = false) {
                 node = senderId;
             }
 
-            let reqMessage = `[ 🔥NightBot ]\n${message}`;
+            let reqMessage = message;
+            if(config.watermark && config.watermark != '') {
+                reqMessage = `${config.watermark}\n${message}`;
+            }
+            
+            const lastMessageId = await getLastMessageId(senderId);
 
+            const orders_counters = {
+                "type": "orders_counters",
+                "id": `${appData.id}`,
+                "tag": `${getRandomTag()}`,
+                "data": false
+            };
+
+            const chat_node = {
+                "type": "chat_node",
+                "id": `${node}`,
+                "tag": `${getRandomTag()}`,
+                "data": {
+                    "node": `${node}`,
+                    "last_message": lastMessageId,
+                    "content": reqMessage
+                }
+            };
+
+            const chat_bookmarks =  {
+                "type": "chat_bookmarks",
+                "id": `${appData.id}`,
+                "tag": `${getRandomTag()}`,
+                "data": false
+            };
+
+            const cpu = {
+                "type": "c-p-u",
+                "id": `${senderId}`,
+                "tag": `${getRandomTag()}`,
+                "data": false
+            };
+
+            const objects = [orders_counters, chat_node, chat_bookmarks, cpu];
             const request = {
                 "action": "chat_message",
                 "data": {
                     "node": node,
+                    "last_message": lastMessageId,
                     "content": reqMessage
                 }
             };
 
             const params = new URLSearchParams();
-            params.append('objects', "");
+            if(!customNode) 
+                params.append('objects', JSON.stringify(objects));
+            else
+                params.append('objects', '');
             params.append('request', JSON.stringify(request));
             params.append('csrf_token', appData.csrfToken);
 
@@ -216,7 +272,6 @@ async function sendMessage(senderId, message, customNode = false) {
             };
 
             const resp = await fetch(url, options, delay);
-            await delays.sleep();
             const json = await resp.json();
 
             if(json.response && json.response.error == null) {
@@ -239,9 +294,9 @@ async function sendMessage(senderId, message, customNode = false) {
             delay += 10000;
         }
     } catch (err) {
-        log(`Ошибка при отправке сообщения: ${err}`);
+        log(`Ошибка при отправке сообщения: ${err}`, 'r');
     }
     return result;
 }
 
-export { getMessages, sendMessage, getChats, enableAutoResponse };
+export { getMessages, sendMessage, getChats, enableAutoResponse, getLastMessageId };

@@ -1,18 +1,17 @@
+import c from 'chalk';
 import fetch from './fetch.js';
 import { getAllGoods } from './goods.js';
 import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
-import { load } from './storage.js';
-import Delays from './delays.js';
-const delays = new Delays();
+import { load, loadSettings, getConst } from './storage.js';
 
-const config = load('config.json');
+const config = loadSettings();
 const appData = load('data/appData.json');
 let goodsState;
 
 async function enableGoodsStateCheck(timeout) {
     goodsState = load('data/goodsState.json');
-    log(`Автовосстановление лотов запущено, загружено ${goodsState.length} лота(ов).`);
+    log(`Автовосстановление лотов запущено, загружено ${c.bold(goodsState.length)} лота(ов).`);
 
     setInterval(() => {
         checkGoodsState();
@@ -21,7 +20,7 @@ async function enableGoodsStateCheck(timeout) {
 
 async function checkGoodsState() {
     try {
-        log(`Проверяем состояние товаров на наличие изменений...`);
+        log(`Проверяем состояние товаров на наличие изменений...`, 'c');
         const goodsNow = await getAllGoods(appData.id);
         const goodsBackup = goodsState;
 
@@ -38,7 +37,7 @@ async function checkGoodsState() {
 
         //log(`Проверка состояния товаров завершена.`);
     } catch (err) {
-        log(`Ошибка при проверке активности лотов: ${err}`);
+        log(`Ошибка при проверке активности лотов: ${err}`, 'r');
     }
 }
 
@@ -47,7 +46,7 @@ async function setState(state, offer_id, node_id) {
     let result = [];
     try {
         const query = `?tag=${getRandomTag()}&offer=${offer_id}&node=${node_id}`;
-        const url = `${config.api}/lots/offerEdit${query}`;
+        const url = `${getConst('api')}/lots/offerEdit${query}`;
         const headers = {
             "accept": "*/*",
             "content-type": "application/json",
@@ -61,7 +60,6 @@ async function setState(state, offer_id, node_id) {
         };
 
         const resp = await fetch(url, options);
-        await delays.sleep();
         const json = await resp.json();
 
         const doc = parseDOM(json.html);
@@ -129,16 +127,17 @@ async function setState(state, offer_id, node_id) {
         
         await saveOffer(inputData, PHPSESSID);
     } catch(err) {
-        log(`Ошибка при обновлении состояния товара: ${err}`);
+        log(`Ошибка при обновлении состояния товара: ${err}`, 'r');
     }
-    log(`Состояние товара ${offer_id} обновлено.`);
+
+    log(`Состояние товара ${offer_id} обновлено.`, 'g');
     return result;
 }
 
 async function saveOffer(inputs, PHPSESSID) {
     let result = [];
     try {
-        const url = `${config.api}/lots/offerSave`;
+        const url = `${getConst('api')}/lots/offerSave`;
         const headers = {
             "accept": "*/*",
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -158,14 +157,13 @@ async function saveOffer(inputs, PHPSESSID) {
         };
 
         const resp = await fetch(url, options);
-        await delays.sleep();
         const json = await resp.json();
 
         if(json.error) {
-            log(`Ошибка при сохранении товара: ${errors}`);
+            log(`Ошибка при сохранении товара: ${errors}`, 'r');
         }
     } catch(err) {
-        log(`Ошибка при сохранении товара: ${err}`);
+        log(`Ошибка при сохранении товара: ${err}`, 'r');
     }
     return result;
 }
@@ -179,4 +177,4 @@ function getRandomTag() {
     return a;
 }
 
-export { checkGoodsState, setState, enableGoodsStateCheck };
+export { checkGoodsState, setState, enableGoodsStateCheck, getRandomTag };

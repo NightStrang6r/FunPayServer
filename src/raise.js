@@ -1,15 +1,14 @@
+import c from 'chalk';
 import fetch from './fetch.js';
 import { log } from './log.js';
-import { load } from './storage.js';
-import Delays from './delays.js';
-const delays = new Delays();
+import { load, loadSettings, getConst } from './storage.js';
 
-const config = load('config.json');
+const config = loadSettings();
 let raiseCounter = 0;
 
 async function enableLotsRaise(timeout) {
     const categories = load('data/categories.json');
-    log(`Автоподнятие запущено, загружено ${categories.length} категория(ий).`);
+    log(`Автоподнятие запущено, загружено ${c.bold(categories.length)} категория(ий).`);
 
     raiseLots(categories);
     setInterval(() => {
@@ -41,16 +40,16 @@ async function raiseLots(categories){
         }
 
         if(!error) {
-            log(`Лоты подняты.`);
+            log(`Лоты подняты.`, 'g');
         }
     } catch (err) {
-        log(`Ошибка при поднятии лотов: ${err}`);
+        log(`Ошибка при поднятии лотов: ${err}`, 'r');
     }
 }
 
 async function raiseLot(game_id, node_id) {
     try {
-        const raiseUrl = `${config.api}/lots/raise`;
+        const raiseUrl = `${getConst('api')}/lots/raise`;
 
         const params = new URLSearchParams();
         params.append('game_id', game_id);
@@ -70,7 +69,6 @@ async function raiseLot(game_id, node_id) {
         };
 
         let resp = await fetch(raiseUrl, options);
-        await delays.sleep();
         let res = await resp.json();
 
         if(res.modal) {
@@ -88,13 +86,12 @@ async function raiseLot(game_id, node_id) {
             };
 
             resp = await fetch(raiseUrl, options);
-            await delays.sleep();
             res = await resp.json();
         }
 
         return {success: true, msg: res.msg};
     } catch(err) {
-        log(`Ошибка при поднятии лота: ${err}`);
+        log(`Ошибка при поднятии лота: ${err}`, 'r');
         return {success: false};
     }
 }

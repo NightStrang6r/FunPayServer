@@ -4,21 +4,38 @@ import { enableGoodsStateCheck } from './activity.js';
 import { updateGoodsState } from './goods.js';
 import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 import { updateCategoriesData } from './categories.js';
+import { initStorage, loadSettings } from './storage.js';
 
-import { getMessages, sendMessage, getChats, enableAutoResponse } from './chat.js';
+import { getMessages, sendMessage, getChats, enableAutoResponse, getLastMessageId } from './chat.js';
 import { getOrders, getNewOrders, issueGood, searchOrdersByUserName, enableAutoIssue } from './sales.js';
-import { getAllEmails, getSteamCode } from './email.js';
 
-log(`Получаем данные пользователя...`);
+// Loading data
+await initStorage();
+const settings = loadSettings();
+
+log(`Получаем данные пользователя...`, 'c');
 const userData = await getUserData();
 if(!userData) process.exit();
-log(`Привет, ${userData.userName}!`);
+log(`Привет, ${userData.userName}!`, 'm');
 
-await updateCategoriesData();
-await updateGoodsState();
+if(settings.lotsRaise == true)
+    await updateCategoriesData();
 
-enableLotsRaise(120000);
-enableGoodsStateCheck(120000);
-enableAutoIssue(20000);
-//enableAutoResponse(5000);
-enableUserDataUpdate(100000);
+if(settings.goodsStateCheck == true)
+    await updateGoodsState();
+
+// Starting threads
+if(settings.lotsRaise == true) 
+    enableLotsRaise(settings.intervals.lotsRaise * 1000);
+
+if(settings.goodsStateCheck == true) 
+    enableGoodsStateCheck(settings.intervals.goodsStateCheck * 1000);
+
+if(settings.autoIssue == true) 
+    enableAutoIssue(settings.intervals.autoIssue * 1000);
+
+if(settings.autoResponse == true) 
+    enableAutoResponse(settings.intervals.autoResponse * 1000);
+
+if(settings.userDataUpdate == true) 
+    enableUserDataUpdate(settings.intervals.userDataUpdate * 1000);

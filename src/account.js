@@ -1,11 +1,9 @@
 import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
-import { load, updateFile } from './storage.js';
-import Delays from './delays.js';
-const delays = new Delays();
+import { load, updateFile, loadSettings, getConst } from './storage.js';
 
-const config = load('config.json');
+const config = loadSettings();
 const headers = { "cookie": `golden_key=${config.token};`};
 
 let appData = load('data/appData.json');
@@ -38,8 +36,7 @@ async function countTradeProfit() {
                 headers: headers
             };
     
-            const resp = await fetch(`${config.api}/orders/trade`, options);
-            await delays.sleep();
+            const resp = await fetch(`${getConst('api')}/orders/trade`, options);
             const body = await resp.text();
 
             const doc = parseDOM(body);
@@ -65,7 +62,7 @@ async function countTradeProfit() {
             log(`Продажи: ${ordersCount}; Заработок: ${result} ₽`);
         }
     } catch (err) {
-        log(`Ошибка при подсчёте профита: ${err}`);
+        log(`Ошибка при подсчёте профита: ${err}`, 'r');
     }
     return result;
 }
@@ -83,8 +80,7 @@ async function getUserData() {
             headers: headers
         };
 
-        const resp = await fetch(config.api, options);
-        await delays.sleep();
+        const resp = await fetch(getConst('api'), options);
         const body = await resp.text();
 
         const doc = parseDOM(body);
@@ -115,7 +111,7 @@ async function getUserData() {
             log(`Необходимо авторизоваться.`);
         }
     } catch (err) {
-        log(`Ошибка при получении данных аккаунта: ${err}`);
+        log(`Ошибка при получении данных аккаунта: ${err}`, 'r');
     }
     return result;
 }

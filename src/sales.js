@@ -1,13 +1,12 @@
+import c from 'chalk';
 import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { sendMessage } from './chat.js';
-import { load, updateFile } from './storage.js';
-import Delays from './delays.js';
-const delays = new Delays();
+import { load, updateFile, loadSettings, getConst } from './storage.js';
 
 const goodsfilePath = 'data/autoIssueGoods.json';
-const config = load('config.json');
+const config = loadSettings();
 let goods = load(goodsfilePath);
 
 async function enableAutoIssue(timeout) {
@@ -16,7 +15,7 @@ async function enableAutoIssue(timeout) {
 
     setInterval(async () => {
         try {
-            log(`Проверяем на наличие новых заказов...`);
+            log(`Проверяем на наличие новых заказов...`, 'c');
             orders = await getNewOrders(backupOrders);
             if(!orders || !orders.newOrders[0]) {
                 //log(`Новых заказов нет.`);
@@ -30,11 +29,11 @@ async function enableAutoIssue(timeout) {
                 backupOrders = orders.backupOrders;
             }
         } catch (err) {
-            log(`Ошибка при автовыдаче: ${err}`);
+            log(`Ошибка при автовыдаче: ${err}`, 'r');
         }
     }, timeout);
 
-    log(`Автовыдача запущена, загружено ${goods.length} товара(ов).`);
+    log(`Автовыдача запущена, загружено ${c.bold(goods.length)} товара(ов).`);
 }
 
 async function issueGood(buyerId, goodName) {
@@ -77,7 +76,7 @@ async function issueGood(buyerId, goodName) {
             log(`Товара "${goodName}" нет в списке автовыдачи, пропускаю.`);
         }
     } catch (err) {
-        log(`Ошибка при выдаче товара: ${err}`);
+        log(`Ошибка при выдаче товара: ${err}`, 'r');
     }
 }
 
@@ -93,7 +92,7 @@ async function getGood(orderName) {
             }
         }
     } catch (err) {
-        log(`Ошибка при поиске заказов по нику: ${err}`);
+        log(`Ошибка при поиске заказов по нику: ${err}`, 'r');
     }
 
     return result;
@@ -117,7 +116,7 @@ async function addDeliveredName(orderName, name, orderId) {
             }
         }
     } catch (err) {
-        log(`Ошибка при записи новых ников к заказу: ${err}`);
+        log(`Ошибка при записи новых ников к заказу: ${err}`, 'r');
     }
 }
 
@@ -134,7 +133,7 @@ async function searchOrdersByUserName(userName) {
             }
         }
     } catch (err) {
-        log(`Ошибка при поиске заказов по нику: ${err}`);
+        log(`Ошибка при поиске заказов по нику: ${err}`, 'r');
     }
 
     return result;
@@ -165,7 +164,7 @@ async function getNewOrders(lastOrders) {
             result[i] = orders[i];
         }
     } catch(err) {
-        log(`Ошибка при получении новых заказов: ${err}`);
+        log(`Ошибка при получении новых заказов: ${err}`, 'r');
     }
 
     return {newOrders: result, backupOrders: orders};
@@ -174,7 +173,7 @@ async function getNewOrders(lastOrders) {
 async function getOrders() {
     let result = [];
     try {
-        const url = `${config.api}/orders/trade`;
+        const url = `${getConst('api')}/orders/trade`;
         const headers = {
             "cookie": `golden_key=${config.token}`,
             "x-requested-with": "XMLHttpRequest"
@@ -186,7 +185,6 @@ async function getOrders() {
         }
 
         let resp = await fetch(url, options);
-        await delays.sleep();
         
         const data = await resp.text();
         const doc = parseDOM(data);
@@ -214,7 +212,7 @@ async function getOrders() {
 
         return result;
     } catch (err) {
-        log(`Ошибка при получении списка продаж: ${err}`);
+        log(`Ошибка при получении списка продаж: ${err}`, 'r');
     }
     return result;
 }

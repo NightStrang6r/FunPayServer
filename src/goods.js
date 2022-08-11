@@ -4,17 +4,15 @@ import { parseDOM } from './DOMParser.js';
 import { getAllCategories } from './categories.js';
 import { load, updateFile } from './storage.js';
 import { log } from './log.js';
-import Delays from './delays.js';
-const delays = new Delays();
 
 let appData = load('data/appData.json');
 
 async function updateGoodsState() {
-    log(`Обновляем список состояния товаров...`);
+    log(`Обновляем список состояния товаров...`, 'c');
     const data = await getAllGoods(appData.id);
 
     updateFile(data, `data/goodsState.json`);
-    log(`Список состояния товаров обновлён.`);
+    log(`Список состояния товаров обновлён.`, 'g');
 }
 
 /*function backupGoods(userId) {
@@ -37,7 +35,7 @@ async function getAllGoods(userId, full = false) {
             });
         }
     } catch(err) {
-        log(`Ошибка при получении товаров: ${err}`);
+        log(`Ошибка при получении товаров: ${err}`, 'r');
     }
     return result;
 }
@@ -51,7 +49,6 @@ async function getGoodsFromCategory(category, full = false) {
         };
 
         const resp = await fetch(category, options);
-        await delays.sleep();
         const body = await resp.text();
 
         const doc = parseDOM(body);
@@ -85,7 +82,7 @@ async function getGoodsFromCategory(category, full = false) {
             result[i] = good;
         }
     } catch(err) {
-        log(`Ошибка при получении товаров из категории: ${err}`);
+        log(`Ошибка при получении товаров из категории: ${err}`, 'r');
     }
     return result;
 }

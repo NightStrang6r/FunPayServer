@@ -3,22 +3,17 @@ import { log } from './log.js';
 import { updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
-import { load } from './storage.js';
-import Delays from './delays.js';
-const delays = new Delays();
+import { load, loadSettings, getConst } from './storage.js';
 
-const config = load('config.json');
 const appData = load('data/appData.json');
 
 async function updateCategoriesData() {
-    log(`Обновляем список категорий...`);
-    //log(`Получаем список категорий...`);
+    log(`Обновляем список категорий...`, 'c');
     const cat = await getAllCategories(appData.id);
-    //log(`Получаем информацию о категориях...`);
     const data = await getCategoriesData(cat);
 
     updateFile(data, `data/categories.json`);
-    log(`Список категорий обновлён.`);
+    log(`Список категорий обновлён.`, 'g');
 }
 
 async function getCategoriesData(categories) {
@@ -29,7 +24,7 @@ async function getCategoriesData(categories) {
             result[i].name = result[i].name.replace('&nbsp;', ' ');
         }
     } catch (err) {
-        log(`Ошибка при получении данных категорий: ${err}`);
+        log(`Ошибка при получении данных категорий: ${err}`, 'r');
     }
     return result;
 }
@@ -43,7 +38,6 @@ async function getCategoryData(category) {
         };
 
         const resp = await fetch(category, options);
-        await delays.sleep();
         const body = await resp.text();
         
         const doc = parseDOM(body);
@@ -55,7 +49,7 @@ async function getCategoryData(category) {
             game_id: buttonEl.dataset.game
         }
     } catch (err) {
-        log(`Ошибка при получении данных категории: ${err}`);
+        log(`Ошибка при получении данных категории: ${err}`, 'r');
     }
     return result;
 }
@@ -68,8 +62,7 @@ async function getAllCategories(id) {
             headers: headers
         };
 
-        const resp = await fetch(`${config.api}/users/${id}/`, options);
-        await delays.sleep();
+        const resp = await fetch(`${getConst('api')}/users/${id}/`, options);
         const body = await resp.text();
 
         const doc = parseDOM(body);
@@ -79,7 +72,7 @@ async function getAllCategories(id) {
             result[i] = categories[i].firstElementChild.href;
         }
     } catch (err) {
-        log(`Ошибка при получении категорий: ${err}`);
+        log(`Ошибка при получении категорий: ${err}`, 'r');
     }
     return result;
 }

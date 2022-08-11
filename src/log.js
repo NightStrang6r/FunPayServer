@@ -1,3 +1,4 @@
+import c from 'chalk';
 import { logToFile } from './storage.js';
 
 const logo = `
@@ -5,27 +6,8 @@ const logo = `
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
-const version = 'v0.1.1';
+const version = 'v0.1.2';
 const by = 'By NightStranger\n';
-
-const colors = {
-    Reset: "\x1b[0m",
-    Bright: "\x1b[1m",
-    Dim: "\x1b[2m",
-    Underscore: "\x1b[4m",
-    Blink: "\x1b[5m",
-    Reverse: "\x1b[7m",
-    Hidden: "\x1b[8m",
-
-    FgBlack: "\x1b[30m",
-    FgRed: "\x1b[31m",
-    FgGreen: "\x1b[32m",
-    FgYellow: "\x1b[33m",
-    FgBlue: "\x1b[34m",
-    FgMagenta: "\x1b[35m",
-    FgCyan: "\x1b[36m",
-    FgWhite: "\x1b[37m",
-};
 
 const enableFileLog = true;
 let logBuffer = [];
@@ -38,28 +20,39 @@ if(enableFileLog) {
 printLogo();
 
 function printLogo() {
-    /*for(let key in colors) {
-        console.log(`${colors[key]}`, `${key}\n${text}`, `\x1b[0m`);
-    }*/
-    console.log(`${colors['Blink']}${logo}\x1b[0m`);
-    console.log(`${colors['FgCyan']}${version}\x1b[0m`);
-    console.log(`${colors['FgMagenta']}${by}\x1b[0m`);
+    console.log(`\x1b[5m${logo}\x1b[0m`);
+    console.log(c.cyan(version));
+    console.log(c.magenta(by));
 }
 
-function log(msg, err = false) {
+function log(msg, color = 'w') {
     const date = getDate();
-    const logMsg = `>[${date.day}.${date.month}.${date.year}] [${date.hour}:${date.minute}:${date.second}]: ${msg}`;
+    const dateString = `[${date.day}.${date.month}.${date.year}]`;
+    const timeString = `[${date.hour}:${date.minute}:${date.second}]`;
+    const logText = `>${dateString} ${timeString}: ${msg}`;
+    let coloredMsg = msg;
+
+    switch (color) {
+        case 'c': coloredMsg = c.cyan(msg); break;
+        case 'g': coloredMsg = c.green(msg); break;
+        case 'm': coloredMsg = c.magenta(msg); break;
+        case 'y': coloredMsg = c.yellow(msg); break;
+        case 'r': coloredMsg = c.red(msg); break;
+        default: coloredMsg = msg; break;
+    } 
+
+    const logMsg = `${c.yellow('>')} ${c.cyan(dateString)} ${c.cyan(timeString)}: ${coloredMsg}`;
 
     if(typeof msg != 'object') {
         console.log(logMsg);
-        if(enableFileLog) {
-            logBuffer[logBuffer.length] = logMsg;
-        }
+
+        if(enableFileLog) 
+            logBuffer[logBuffer.length] = logText;
     } else {
         console.log(msg);
-        if(enableFileLog) {
+
+        if(enableFileLog)
             logBuffer[logBuffer.length] = JSON.stringify(msg);
-        }
     }
 }
 
@@ -102,4 +95,4 @@ function getDate() {
     }
 }
 
-export { log, printLogo, getDate };
+export { log, getDate };

@@ -1,10 +1,18 @@
 import fetch from 'node-fetch';
+import { loadSettings } from './storage.js';
 import { log } from './log.js';
+
+const settings = loadSettings();
+let requestsDelay = 0;
+if(settings.requestsDelay) requestsDelay = settings.requestsDelay;
 
 export default async function fetch_(url, options, delay = 0, retries = 20) {
     try {
         let tries = 1;
+
+        delay += requestsDelay;
         await sleep(delay);
+
         let res = await fetch(url, options);
 
         while(!res.ok) {
@@ -16,7 +24,7 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
                 log(res);
                 break;
             };
-            await sleep(2000);
+            await sleep(2000 + requestsDelay);
             res = await fetch(url, options);
             tries++;
         }
