@@ -9,6 +9,7 @@ const _dirname = dirname(_filename);
 
 const dataFolder = 'data';
 const logPath = `${_dirname}/../${dataFolder}/log/`;
+await initStorage();
 
 function initStorage() {
     try {

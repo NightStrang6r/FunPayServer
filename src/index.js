@@ -1,16 +1,15 @@
+import { loadSettings } from './storage.js';
 import { log } from './log.js';
 import { enableLotsRaise } from './raise.js';
 import { enableGoodsStateCheck } from './activity.js';
 import { updateGoodsState } from './goods.js';
 import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 import { updateCategoriesData } from './categories.js';
-import { initStorage, loadSettings } from './storage.js';
 
 import { getMessages, sendMessage, getChats, enableAutoResponse, getLastMessageId } from './chat.js';
 import { getOrders, getNewOrders, issueGood, searchOrdersByUserName, enableAutoIssue } from './sales.js';
 
 // Loading data
-await initStorage();
 const settings = loadSettings();
 
 log(`Получаем данные пользователя...`, 'c');
