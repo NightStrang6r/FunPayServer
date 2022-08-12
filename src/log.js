@@ -6,7 +6,7 @@ const logo = `
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
-const version = 'v0.1.2';
+const version = 'v0.1.3';
 const by = 'By NightStranger\n';
 
 const enableFileLog = true;

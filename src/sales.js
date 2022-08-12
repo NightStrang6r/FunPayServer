@@ -25,7 +25,7 @@ async function enableAutoIssue(timeout) {
     
             const order = orders.newOrders[0];
             if(order) {
-                issueGood(order.buyerId, order.name);
+                issueGood(order.buyerName, order.name);
                 backupOrders = orders.backupOrders;
             }
         } catch (err) {
@@ -36,7 +36,7 @@ async function enableAutoIssue(timeout) {
     log(`Автовыдача запущена, загружено ${c.bold(goods.length)} товара(ов).`);
 }
 
-async function issueGood(buyerId, goodName) {
+async function issueGood(buyerName, goodName) {
     try {
         goods = load(goodsfilePath);
         let message = "";
@@ -65,12 +65,13 @@ async function issueGood(buyerId, goodName) {
         }
 
         if(message != "") {
-            let result = await sendMessage(buyerId, message);
+            let node = await getNodeByUserName(buyerName);
+            let result = await sendMessage(node, message, true);
             if(result) {
-                log(`Товар "${goodName}" выдан пользователю ${buyerId} с сообщением:`);
+                log(`Товар "${goodName}" выдан пользователю ${buyerName} с сообщением:`);
                 log(message);
             } else {
-                log(`Не удалось отправить товар "${goodName}" пользователю ${buyerId}.`);
+                log(`Не удалось отправить товар "${goodName}" пользователю ${buyerName}.`);
             }
         } else {
             log(`Товара "${goodName}" нет в списке автовыдачи, пропускаю.`);

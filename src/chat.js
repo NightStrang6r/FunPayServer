@@ -24,7 +24,7 @@ async function autoResponse() {
     let result = false;
 
     try {
-        const chats = await getChats();
+        const chats = await getChatBookmarks();
         for(let j = 0; j < chats.length; j++) {
             const chat = chats[j];
     
@@ -104,41 +104,6 @@ async function autoResponse() {
     return result;
 }
 
-async function getChats() {
-    let result = [];
-    try {
-        const url = `${getConst('api')}/chat/`;
-        const headers = { 
-            "cookie": `golden_key=${config.token}`
-        };
-
-        const options = {
-            method: 'GET',
-            headers: headers
-        }
-
-        const resp = await fetch(url, options);
-        const text = await resp.text();
-
-        const doc = parseDOM(text);
-        const chats = doc.querySelector(".contact-list").children;
-
-        for(let i = 0; i < chats.length; i++) {
-            const chat = chats[i];
-
-            result[i] = {
-                userName: chat.querySelector(".media-user-name").innerHTML,
-                message: chat.querySelector(".contact-item-message").innerHTML,
-                time: chat.querySelector(".contact-item-time").innerHTML,
-                node: chat.dataset.id
-            };
-        }
-    } catch (err) {
-        log(`Ошибка при получении чатов: ${err}`, 'r');
-    }
-    return result;
-}
-
 async function getMessages(senderId) {
     let result = false;
     try {
@@ -168,6 +133,7 @@ async function getLastMessageId(senderId) {
         let chat = await getMessages(senderId);
         if(!chat) return lastMessageId;
         chat = chat['chat'];
+        if(!chat) return lastMessageId;
 
         const messages = chat.messages;
         lastMessageId = messages[messages.length - 1].id;
@@ -202,8 +168,10 @@ async function sendMessage(senderId, message, customNode = false) {
                 "x-requested-with": "XMLHttpRequest"
             };
 
+            let lastMessageId = 1000000000;
             if(!customNode) {
                 node = `users-${appData.id}-${senderId}`;
+                lastMessageId = await getLastMessageId(senderId);
             } else {
                 node = senderId;
             }
@@ -212,8 +180,6 @@ async function sendMessage(senderId, message, customNode = false) {
             if(config.watermark && config.watermark != '') {
                 reqMessage = `${config.watermark}\n${message}`;
             }
-            
-            const lastMessageId = await getLastMessageId(senderId);
 
             const orders_counters = {
                 "type": "orders_counters",
@@ -299,4 +265,86 @@ async function sendMessage(senderId, message, customNode = false) {
     return result;
 }
 
-export { getMessages, sendMessage, getChats, enableAutoResponse, getLastMessageId };
+async function getNodeByUserName(userName) {
+    let node = null;
+
+    try {
+        const bookmarks = await getChatBookmarks();
+        if(!bookmarks) return null;
+
+        for(let i = 0; i < bookmarks.length; i++) {
+            const chat = bookmarks[i];
+
+            if(chat.userName == userName) {
+                node = chat.node;
+                break;
+            }
+        }
+    } catch(err) {
+        log(`Ошибка при получении node: ${err}`, 'e');
+    }
+
+    return node;
+}
+
+async function getChatBookmarks() {
+    let result = [];
+    try {
+        const url = `${getConst('api')}/runner/`;
+        const headers = {
+            "accept": "*/*",
+            "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "x-requested-with": "XMLHttpRequest"
+        };
+    
+        const chat_bookmarks =  {
+            "type": "chat_bookmarks",
+            "id": `${appData.id}`,
+            "tag": `${getRandomTag()}`,
+            "data": false
+        };
+    
+        const objects = [chat_bookmarks];
+        const params = new URLSearchParams();
+        params.append('objects', JSON.stringify(objects));
+        params.append('request', false);
+        params.append('csrf_token', appData.csrfToken);
+    
+        const options = {
+            method: 'POST',
+            body: params,
+            headers: headers
+        };
+    
+        const resp = await fetch(url, options);
+        const json = await resp.json();
+    
+        const html = json.objects[0].data.html;
+    
+        const doc = parseDOM(html);
+        const chats = doc.querySelectorAll(".contact-item");
+    
+        for(let i = 0; i < chats.length; i++) {
+            const chat = chats[i];
+            
+            let userName = chat.querySelector('.media-user-name').innerHTML;
+            let message = chat.querySelector('.contact-item-message').innerHTML;
+            let time = chat.querySelector('.contact-item-time').innerHTML;
+            let node = chat.dataset.id;
+    
+            result.push({
+                userName: userName,
+                message: message,
+                time: time,
+                node: node
+            });
+        }
+    
+        return result;
+    } catch (err) {
+        log(`Ошибка при получении списка сообщений: ${err}`, 'e');
+    }
+}
+
+export { getMessages, sendMessage, getChatBookmarks, enableAutoResponse, getLastMessageId, getNodeByUserName };

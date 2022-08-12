@@ -104,8 +104,9 @@ async function getUserData() {
                 sessid: PHPSESSID,
                 userName: userName
             };
-            //log('Данные обновлены:');
+            //log('Данные обновлены:', 'g');
             //log(result);
+            
             updateFile(result, 'data/appData.json');
         } else {
             log(`Необходимо авторизоваться.`);

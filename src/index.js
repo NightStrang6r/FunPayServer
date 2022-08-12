@@ -6,7 +6,7 @@ import { updateGoodsState } from './goods.js';
 import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 import { updateCategoriesData } from './categories.js';
 
-import { getMessages, sendMessage, getChats, enableAutoResponse, getLastMessageId } from './chat.js';
+import { getMessages, sendMessage, enableAutoResponse, getLastMessageId, getNodeByUserName } from './chat.js';
 import { getOrders, getNewOrders, issueGood, searchOrdersByUserName, enableAutoIssue } from './sales.js';
 
 // Loading data
