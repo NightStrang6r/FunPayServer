@@ -2,7 +2,7 @@ import c from 'chalk';
 import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
-import { sendMessage } from './chat.js';
+import { sendMessage, getNodeByUserName } from './chat.js';
 import { load, updateFile, loadSettings, getConst } from './storage.js';
 
 const goodsfilePath = 'data/autoIssueGoods.json';
