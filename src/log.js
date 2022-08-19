@@ -6,7 +6,7 @@ const logo = `
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
-const version = 'v0.1.3';
+const version = 'v0.1.5';
 const by = 'By NightStranger\n';
 
 const enableFileLog = true;
@@ -23,6 +23,8 @@ function printLogo() {
     console.log(`\x1b[5m${logo}\x1b[0m`);
     console.log(c.cyan(version));
     console.log(c.magenta(by));
+    console.log(c.greenBright(`Telegram: https://t.me/fplite`));
+    console.log(c.greenBright(`Discord:  https://discord.gg/gEPnwzVD3H\n`));
 }
 
 function log(msg, color = 'w') {

@@ -51,6 +51,14 @@ function loadSettings() {
                     autoResponse: 5, 
                     userDataUpdate: 100
                 },
+                proxy: {
+                    useProxy: false,
+                    host: "",
+                    port: 3128,
+                    login: "",
+                    pass: "",
+                    type: "http"
+                },
                 requestsDelay: 0,
                 watermark: "[ 🔥NightBot ]"
             };

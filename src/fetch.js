@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import proxy from 'https-proxy-agent';
 import { loadSettings } from './storage.js';
 import { log } from './log.js';
 
@@ -6,9 +7,32 @@ const settings = loadSettings();
 let requestsDelay = 0;
 if(settings.requestsDelay) requestsDelay = settings.requestsDelay;
 
+if(settings.proxy.useProxy == true) {
+    if(!settings.proxy.type || !settings.proxy.host) {
+        log(`Неверные данные прокси!`, 'r');
+        process.exit(1);
+    }
+
+    log(`Для совершения запросов используется ${settings.proxy.type} прокси: ${settings.proxy.host}`, 'g');
+}
+
 export default async function fetch_(url, options, delay = 0, retries = 20) {
     try {
         let tries = 1;
+
+        if(settings.proxy.useProxy == true) {
+            if(!options) options = {};
+            let proxyString = '';
+
+            if(settings.proxy.login || settings.proxy.pass) {
+                proxyString = `${settings.proxy.type}://${settings.proxy.login}:${settings.proxy.pass}@${settings.proxy.host}:${settings.proxy.port}`;
+            } else {
+                proxyString = `${settings.proxy.type}://${settings.proxy.host}:${settings.proxy.port}`;
+            }
+            
+            const agent = new proxy(proxyString);
+            options.agent = agent;
+        }
 
         delay += requestsDelay;
         await sleep(delay);
