@@ -1,3 +1,5 @@
+import { program } from 'commander';
+import ver from 'project-version';
 import { loadSettings } from './storage.js';
 import { log } from './log.js';
 import { enableLotsRaise } from './raise.js';
@@ -6,8 +8,27 @@ import { updateGoodsState } from './goods.js';
 import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 import { updateCategoriesData } from './categories.js';
 
-import { getMessages, sendMessage, enableAutoResponse, getLastMessageId, getNodeByUserName } from './chat.js';
+import { getMessages, sendMessage, getChatBookmarks, enableAutoResponse, getLastMessageId, getNodeByUserName } from './chat.js';
 import { getOrders, getNewOrders, issueGood, searchOrdersByUserName, enableAutoIssue } from './sales.js';
+
+process.on('uncaughtException', function(e) {
+    console.log('Ошибка: необработанное исключение... Выход из программы через 2 минуты.');
+    console.log(e.stack);
+    setTimeout(() => {process.exit(1)}, 120000);
+});
+
+// Checking arguments
+program
+  .version(ver, '-v, --version')
+  .usage('[OPTIONS]...')
+  .option('-c, --countProfit', 'count your trade profit and exit')
+  .parse(process.argv);
+
+const options = program.opts();
+if(options && options.countProfit) {
+    log('Считаем заработок по продажам...', 'g');
+    await countTradeProfit();
+}
 
 // Loading data
 const settings = loadSettings();

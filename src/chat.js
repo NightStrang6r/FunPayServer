@@ -34,29 +34,41 @@ async function autoResponse() {
             for(let i = 0; i < autoRespData.length; i++) {
                 if(chat.message == autoRespData[i].command) {
                     log(`Команда: ${autoRespData[i].command}, ответ: ${autoRespData[i].response} для пользователя ${chat.userName}`);
-                    await sendMessage(chat.node, autoRespData[i].response, true);
+                    await sendMessage(chat.node, autoRespData[i].response);
                     break;
                 }
             }
     
             // Custom commands
 
-            if(chat.message.includes("!теставтовыдачи")) {
+            if(config.autoIssueTestCommand == true && chat.message.includes("!автовыдача")) {
                 const goodName = chat.message.split(`"`)[1];
-                const good = await getGood(goodName);
-                    
-                if(good) {
-                    await issueGood(1664916, goodName);
-                } else {
-                    await sendMessage(chat.node, `Товар не найден в списке автовыдачи.`, true);
+                if(!goodName) {
+                    log(`Команда: !автовыдача для пользователя ${chat.userName}: товар не указан.`, `c`);
+                    await sendMessage(chat.node, `Товар не указан. Укажите название предложения в кавычках (").`);
+                    break;
+                }
+
+                log(`Команда: !автовыдача для пользователя ${chat.userName}:`);
+                let issueResult = await issueGood('', goodName, chat.node);
+
+                if(!issueResult) {
+                    await sendMessage(chat.node, `Товара "${goodName}" нет в списке автовыдачи`);
+                    break;
+                }
+
+                if(issueResult == 'notInStock') {
+                    await sendMessage(chat.node, `Товар закончился`);
+                    break;
                 }
             }
 
             if(chat.message.toLowerCase() == "!код") {
                 const orders = await searchOrdersByUserName(chat.userName);
                 if(orders.length == 0) {
-                    await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`, true);
-                    return result;
+                    await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`);
+                    isAutoRespBusy = false;
+                    break;
                 }
                 const order = orders[0];
                 const good = await getGood(order.name);
@@ -71,7 +83,7 @@ async function autoResponse() {
                 }
     
                 if(!alreadyDelivered) {
-                    //sendMessage(chat.node, `Получаем код. Пожалуйста, подождите.`, true);
+                    //sendMessage(chat.node, `Получаем код. Пожалуйста, подождите.`);
                     const codeResult = await getSteamCode(good.email, good.pass, good.server);
                     let code = false;
 
@@ -79,25 +91,26 @@ async function autoResponse() {
                         code = codeResult.code;
                     } else {
                         if(codeResult.msg == "no-new-mails") {
-                            await sendMessage(chat.node, `На данный момент новых кодов нет. Убедитесь, что вошли в нужный аккаунт в нужном лаунчере, либо попробуйте ещё раз через минуту.`, true);
-                            return result;
+                            await sendMessage(chat.node, `На данный момент новых кодов нет. Убедитесь, что вошли в нужный аккаунт в нужном лаунчере, либо попробуйте ещё раз через минуту.`);
+                            break;
                         }
                     }
 
                     if(code) {
-                        const res = await sendMessage(chat.node, `Code: ${code}`, true);
+                        const res = await sendMessage(chat.node, `Code: ${code}`);
                         if(res) {
                             await addDeliveredName(order.name, order.buyerName, order.id);
                         }
                     }
                 } else {
-                    await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`, true);
+                    await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`);
                 }
                 break;
             }
         }
     } catch (err) {
         log(`Ошибка при автоответе: ${err}`, 'r');
+        isAutoRespBusy = false;
     }
 
     isAutoRespBusy = false;
@@ -170,10 +183,10 @@ async function sendMessage(senderId, message, customNode = false) {
 
             let lastMessageId = 1000000000;
             if(!customNode) {
+                node = senderId;
+            } else {
                 node = `users-${appData.id}-${senderId}`;
                 lastMessageId = await getLastMessageId(senderId);
-            } else {
-                node = senderId;
             }
 
             let reqMessage = message;
@@ -181,39 +194,6 @@ async function sendMessage(senderId, message, customNode = false) {
                 reqMessage = `${config.watermark}\n${message}`;
             }
 
-            const orders_counters = {
-                "type": "orders_counters",
-                "id": `${appData.id}`,
-                "tag": `${getRandomTag()}`,
-                "data": false
-            };
-
-            const chat_node = {
-                "type": "chat_node",
-                "id": `${node}`,
-                "tag": `${getRandomTag()}`,
-                "data": {
-                    "node": `${node}`,
-                    "last_message": lastMessageId,
-                    "content": reqMessage
-                }
-            };
-
-            const chat_bookmarks =  {
-                "type": "chat_bookmarks",
-                "id": `${appData.id}`,
-                "tag": `${getRandomTag()}`,
-                "data": false
-            };
-
-            const cpu = {
-                "type": "c-p-u",
-                "id": `${senderId}`,
-                "tag": `${getRandomTag()}`,
-                "data": false
-            };
-
-            const objects = [orders_counters, chat_node, chat_bookmarks, cpu];
             const request = {
                 "action": "chat_message",
                 "data": {
@@ -224,10 +204,7 @@ async function sendMessage(senderId, message, customNode = false) {
             };
 
             const params = new URLSearchParams();
-            if(!customNode) 
-                params.append('objects', JSON.stringify(objects));
-            else
-                params.append('objects', '');
+            params.append('objects', '');
             params.append('request', JSON.stringify(request));
             params.append('csrf_token', appData.csrfToken);
 
@@ -241,11 +218,12 @@ async function sendMessage(senderId, message, customNode = false) {
             const json = await resp.json();
 
             if(json.response && json.response.error == null) {
-                log(`Сообщение отправлено, node: "${node}", сообщение: "${reqMessage}"`);
-                log(`Запрос:`);
-                log(options);
-                log(`Ответ:`);
-                log(json);
+                log(`Сообщение отправлено, чат node ${node}.`, 'g');
+                //log(`Сообщение отправлено, node: "${node}", сообщение: "${reqMessage}"`);
+                // log(`Запрос:`);
+                // log(options);
+                // log(`Ответ:`);
+                // log(json);
                 result = true;
             } else {
                 log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${reqMessage}"`);

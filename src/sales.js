@@ -36,8 +36,11 @@ async function enableAutoIssue(timeout) {
     log(`Автовыдача запущена, загружено ${c.bold(goods.length)} товара(ов).`);
 }
 
-async function issueGood(buyerName, goodName) {
+async function issueGood(buyerName, goodName, chatNode = false) {
     try {
+        let result = false;
+        let notInStock = false;
+
         goods = load(goodsfilePath);
         let message = "";
         
@@ -59,14 +62,29 @@ async function issueGood(buyerName, goodName) {
                             break;
                         }
                     }
+                    notInStock = true;
                     break;
                 }
             }
         }
 
+        if(notInStock) {
+            log(`Похоже, товар "${goodName}" закончился, выдавать нечего.`);
+            return 'notInStock';
+        }
+
         if(message != "") {
-            let node = await getNodeByUserName(buyerName);
-            let result = await sendMessage(node, message, true);
+            let node;
+
+            if(!chatNode) {
+                node = await getNodeByUserName(buyerName);
+            } else {
+                node = chatNode;
+                buyerName = chatNode;
+            }
+            
+            result = await sendMessage(node, message);
+            
             if(result) {
                 log(`Товар "${goodName}" выдан пользователю ${buyerName} с сообщением:`);
                 log(message);

@@ -13,7 +13,7 @@ if(settings.proxy.useProxy == true) {
         process.exit(1);
     }
 
-    log(`Для совершения запросов используется ${settings.proxy.type} прокси: ${settings.proxy.host}`, 'g');
+    log(`Для обработки запросов используется ${settings.proxy.type} прокси: ${settings.proxy.host}`, 'g');
 }
 
 export default async function fetch_(url, options, delay = 0, retries = 20) {

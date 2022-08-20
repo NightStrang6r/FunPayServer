@@ -1,4 +1,5 @@
 import c from 'chalk';
+import ver from 'project-version';
 import { logToFile } from './storage.js';
 
 const logo = `
@@ -6,7 +7,8 @@ const logo = `
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
-const version = 'v0.1.5';
+
+const version = `v${ver}`;
 const by = 'By NightStranger\n';
 
 const enableFileLog = true;
@@ -24,7 +26,8 @@ function printLogo() {
     console.log(c.cyan(version));
     console.log(c.magenta(by));
     console.log(c.greenBright(`Telegram: https://t.me/fplite`));
-    console.log(c.greenBright(`Discord:  https://discord.gg/gEPnwzVD3H\n`));
+    console.log(c.greenBright(`Discord:  https://discord.gg/gEPnwzVD3H`));
+    console.log(c.greenBright(`Github:   https://github.com/NightStrang6r/FunPayServer\n`));
 }
 
 function log(msg, color = 'w') {

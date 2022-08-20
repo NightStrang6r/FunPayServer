@@ -51,6 +51,7 @@ function loadSettings() {
                     autoResponse: 5, 
                     userDataUpdate: 100
                 },
+                autoIssueTestCommand: false,
                 proxy: {
                     useProxy: false,
                     host: "",
@@ -94,10 +95,10 @@ function load(uri) {
             return result;
         }
 
-        const rawdata = fs.readFileSync(uri);
+        const rawdata = fs.readFileSync(uri, 'utf-8');
         result = JSON.parse(rawdata);
     } catch (err) {
-        log(`Ошибка при загрузке файла: ${err}`, 'r');
+        log(`Ошибка при загрузке файла "${uri}". Возможно файл имеет неверную кодировку (поддерживается UTF-8): ${err}`, 'r');
     }
     return result;
 }

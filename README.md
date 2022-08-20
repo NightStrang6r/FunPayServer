@@ -125,6 +125,7 @@
         "autoResponse": 5,
         "userDataUpdate": 100
     },
+    "autoIssueTestCommand": true, // функция включения команды "!автовыдача" для теста автовыдачи; требуется функция "autoResponse" для работы [true / false]
     "proxy": {
         "useProxy": false,        // функция использования прокси [true / false]
         "host": "",               // хост прокси [string]
