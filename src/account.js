@@ -1,15 +1,16 @@
 import fetch from './fetch.js';
 import { log } from './log.js';
+import { exit } from './event.js';
 import { parseDOM } from './DOMParser.js';
 import { load, updateFile, loadSettings, getConst } from './storage.js';
 
-const config = loadSettings();
+const config = await loadSettings();
 const headers = { "cookie": `golden_key=${config.token};`};
 
 let appData = load('data/appData.json');
 if(!appData.id) {
     const userData = await getUserData();
-    if(!userData) process.exit();
+    if(!userData) await exit();
 }
 
 async function countTradeProfit() {

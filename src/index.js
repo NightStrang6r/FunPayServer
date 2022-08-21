@@ -2,6 +2,7 @@ import { program } from 'commander';
 import ver from 'project-version';
 import { loadSettings } from './storage.js';
 import { log } from './log.js';
+import { exit } from './event.js';
 import { enableLotsRaise } from './raise.js';
 import { enableGoodsStateCheck } from './activity.js';
 import { updateGoodsState } from './goods.js';
@@ -11,9 +12,10 @@ import { updateCategoriesData } from './categories.js';
 import { getMessages, sendMessage, getChatBookmarks, enableAutoResponse, getLastMessageId, getNodeByUserName } from './chat.js';
 import { getOrders, getNewOrders, issueGood, searchOrdersByUserName, enableAutoIssue } from './sales.js';
 
-process.on('uncaughtException', function(e) {
-    console.log('Ошибка: необработанное исключение... Выход из программы через 2 минуты.');
-    console.log(e.stack);
+// UncaughtException Handler
+process.on('uncaughtException', (e) => {
+    console.error('Ошибка: необработанное исключение... Программа будет закрыта.');
+    console.error(e.stack);
     setTimeout(() => {process.exit(1)}, 120000);
 });
 
@@ -28,14 +30,16 @@ const options = program.opts();
 if(options && options.countProfit) {
     log('Считаем заработок по продажам...', 'g');
     await countTradeProfit();
+    log('Подсчёт окончен.', 'g');
+    await exit();
 }
 
 // Loading data
-const settings = loadSettings();
+const settings = await loadSettings();
 
 log(`Получаем данные пользователя...`, 'c');
 const userData = await getUserData();
-if(!userData) process.exit();
+if(!userData) await exit();
 log(`Привет, ${userData.userName}!`, 'm');
 
 if(settings.lotsRaise == true)

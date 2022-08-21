@@ -7,7 +7,7 @@ import { getSteamCode } from './email.js';
 import { getUserData } from './account.js';
 import { getRandomTag } from './activity.js';
 
-const config = loadSettings();
+const config = await loadSettings();
 const autoRespData = load('data/autoResponse.json');
 let appData = load('data/appData.json');
 

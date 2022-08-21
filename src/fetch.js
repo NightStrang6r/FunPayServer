@@ -1,16 +1,17 @@
 import fetch from 'node-fetch';
 import proxy from 'https-proxy-agent';
+import { exit, sleep } from './event.js';
 import { loadSettings } from './storage.js';
 import { log } from './log.js';
 
-const settings = loadSettings();
+const settings = await loadSettings();
 let requestsDelay = 0;
 if(settings.requestsDelay) requestsDelay = settings.requestsDelay;
 
 if(settings.proxy.useProxy == true) {
     if(!settings.proxy.type || !settings.proxy.host) {
         log(`Неверные данные прокси!`, 'r');
-        process.exit(1);
+        await exit();
     }
 
     log(`Для обработки запросов используется ${settings.proxy.type} прокси: ${settings.proxy.host}`, 'g');
@@ -57,9 +58,4 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
     } catch (err) {
         log(`Error while fetch: ${err}`);
     }
-}
-
-function sleep(delay) {
-    if(delay == 0) return Promise.resolve();
-    return new Promise(resolve => setTimeout(resolve, delay));
 }

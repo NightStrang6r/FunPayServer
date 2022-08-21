@@ -5,7 +5,7 @@ import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
 import { load, loadSettings, getConst } from './storage.js';
 
-const config = loadSettings();
+const config = await loadSettings();
 const appData = load('data/appData.json');
 let goodsState;
 

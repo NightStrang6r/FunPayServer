@@ -3,7 +3,7 @@ import { log } from './log.js';
 import { updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
-import { load, loadSettings, getConst } from './storage.js';
+import { load, getConst } from './storage.js';
 
 const appData = load('data/appData.json');
 

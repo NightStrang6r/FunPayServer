@@ -3,5 +3,5 @@
 echo Installing...
 npm i
 )
-node .
+node . --countProfit
 pause

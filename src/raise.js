@@ -1,9 +1,10 @@
 import c from 'chalk';
 import fetch from './fetch.js';
 import { log } from './log.js';
+import { sleep } from './event.js';
 import { load, loadSettings, getConst } from './storage.js';
 
-const config = loadSettings();
+const config = await loadSettings();
 let raiseCounter = 0;
 
 async function enableLotsRaise(timeout) {
@@ -36,7 +37,7 @@ async function raiseLots(categories){
                 log(`Не удалось поднять лот ${lot.name}: ${res.msg}`);
             }
     
-            await sleep(0.5);
+            await sleep(500);
         }
 
         if(!error) {
@@ -94,13 +95,6 @@ async function raiseLot(game_id, node_id) {
         log(`Ошибка при поднятии лота: ${err}`, 'r');
         return {success: false};
     }
-}
-
-function sleep(n) {
-    n = n * 1000;
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, n);
-    });
 }
 
 export { raiseLots, enableLotsRaise };

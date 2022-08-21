@@ -3,6 +3,7 @@ import c from 'chalk';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { log, getDate } from './log.js';
+import { exit } from './event.js';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -31,7 +32,7 @@ function initStorage() {
     }
 }
 
-function loadSettings() {
+async function loadSettings() {
     try {
         let uri = `${_dirname}/../settings.json`;
         let settings = {};
@@ -67,7 +68,7 @@ function loadSettings() {
             settings = JSON.stringify(settings, null, 4);
             fs.writeFileSync(uri, settings);
             log(c.cyan('Файл settings.json создан. Пропишите свой "golden_key" из куки funpay в поле "token" данного файла, после чего перезапустите программу.'));
-            process.exit(1);
+            await exit();
         }
 
         const rawdata = fs.readFileSync(uri);
@@ -75,13 +76,13 @@ function loadSettings() {
 
         if(!checkToken(settings.token)) {
             log('Невалидный токен (golden_key).', 'r');
-            process.exit(1);
+            await exit();
         }
 
         return settings;
     } catch (err) {
-        log(`Ошибка при загрузке файла настроек: ${err}`, 'r');
-        process.exit(1);
+        log(`Ошибка при загрузке файла настроек: ${err}. Программаа будет закрыта.`, 'r');
+        await exit();
     }
 }
 

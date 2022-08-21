@@ -6,7 +6,7 @@ import { sendMessage, getNodeByUserName } from './chat.js';
 import { load, updateFile, loadSettings, getConst } from './storage.js';
 
 const goodsfilePath = 'data/autoIssueGoods.json';
-const config = loadSettings();
+const config = await loadSettings();
 let goods = load(goodsfilePath);
 
 async function enableAutoIssue(timeout) {
