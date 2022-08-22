@@ -5,13 +5,13 @@ import { getAllCategories } from './categories.js';
 import { load, updateFile } from './storage.js';
 import { log } from './log.js';
 
-let appData = load('data/appData.json');
+let appData = await load('data/appData.json');
 
 async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`, 'c');
     const data = await getAllGoods(appData.id);
 
-    updateFile(data, `data/goodsState.json`);
+    await updateFile(data, `data/goodsState.json`);
     log(`Список состояния товаров обновлён.`, 'g');
 }
 
@@ -20,7 +20,7 @@ async function updateGoodsState() {
     const goods = getAllGoods(userId, true);
     const data = { goods: goods };
 
-    updateFile(data, `data/goodsBackup.js`);
+    await updateFile(data, `data/goodsBackup.js`);
     log(`Бэкап создан.`);
 }*/
 

@@ -1,20 +1,19 @@
 import fetch from './fetch.js';
+import c from 'chalk';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { load, loadSettings, getConst } from './storage.js';
 import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
 import { getSteamCode } from './email.js';
-import { getUserData } from './account.js';
 import { getRandomTag } from './activity.js';
 
-const config = await loadSettings();
-const autoRespData = load('data/autoResponse.json');
-let appData = load('data/appData.json');
+const config = global.settings;
+const autoRespData = await load('data/autoResponse.json');
+let appData = await load('data/appData.json');
 
 let isAutoRespBusy = false;
 
-function enableAutoResponse(timeout) {
-    setInterval(autoResponse, timeout);
+function enableAutoResponse() {
     log(`Автоответ запущен.`);
 }
 
@@ -33,7 +32,7 @@ async function autoResponse() {
             // Commands in file
             for(let i = 0; i < autoRespData.length; i++) {
                 if(chat.message == autoRespData[i].command) {
-                    log(`Команда: ${autoRespData[i].command}, ответ: ${autoRespData[i].response} для пользователя ${chat.userName}`);
+                    log(`Команда: ${c.yellowBright(autoRespData[i].command)} для пользователя ${c.yellowBright(chat.userName)}.`);
                     await sendMessage(chat.node, autoRespData[i].response);
                     break;
                 }
@@ -44,12 +43,12 @@ async function autoResponse() {
             if(config.autoIssueTestCommand == true && chat.message.includes("!автовыдача")) {
                 const goodName = chat.message.split(`"`)[1];
                 if(!goodName) {
-                    log(`Команда: !автовыдача для пользователя ${chat.userName}: товар не указан.`, `c`);
+                    log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}: товар не указан.`, `c`);
                     await sendMessage(chat.node, `Товар не указан. Укажите название предложения в кавычках (").`);
                     break;
                 }
 
-                log(`Команда: !автовыдача для пользователя ${chat.userName}:`);
+                log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}:`);
                 let issueResult = await issueGood('', goodName, chat.node);
 
                 if(!issueResult) {
@@ -63,7 +62,7 @@ async function autoResponse() {
                 }
             }
 
-            if(chat.message.toLowerCase() == "!код") {
+            /*if(chat.message.toLowerCase() == "!код") {
                 const orders = await searchOrdersByUserName(chat.userName);
                 if(orders.length == 0) {
                     await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`);
@@ -106,7 +105,7 @@ async function autoResponse() {
                     await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`);
                 }
                 break;
-            }
+            }*/
         }
     } catch (err) {
         log(`Ошибка при автоответе: ${err}`, 'r');
@@ -142,7 +141,6 @@ async function getMessages(senderId) {
 async function getLastMessageId(senderId) {
     let lastMessageId = 1000000000;
     try {
-        
         let chat = await getMessages(senderId);
         if(!chat) return lastMessageId;
         chat = chat['chat'];
@@ -157,21 +155,19 @@ async function getLastMessageId(senderId) {
     return lastMessageId;
 }
 
-async function sendMessage(senderId, message, customNode = false) {
-    if(!message || message == undefined || !senderId || senderId == undefined) return;
+async function sendMessage(node, message, customNode = false) {
+    if(!message || message == undefined || !node || node == undefined) return;
 
     let result = false;
     let maxRetries = 6;
     let tries = 1;
     let delay = 0;
-    let node = "";
 
     try {
         while(result == false) {
             if(tries > maxRetries) break;
 
-            await getUserData();
-            appData = load('data/appData.json');
+            appData = await load('data/appData.json');
 
             const url = `${getConst('api')}/runner/`;
             const headers = {
@@ -182,11 +178,9 @@ async function sendMessage(senderId, message, customNode = false) {
             };
 
             let lastMessageId = 1000000000;
-            if(!customNode) {
-                node = senderId;
-            } else {
-                node = `users-${appData.id}-${senderId}`;
-                lastMessageId = await getLastMessageId(senderId);
+            if(customNode) {
+                lastMessageId = await getLastMessageId(node);
+                node = `users-${appData.id}-${node}`;
             }
 
             let reqMessage = message;
@@ -218,15 +212,10 @@ async function sendMessage(senderId, message, customNode = false) {
             const json = await resp.json();
 
             if(json.response && json.response.error == null) {
-                log(`Сообщение отправлено, чат node ${node}.`, 'g');
-                //log(`Сообщение отправлено, node: "${node}", сообщение: "${reqMessage}"`);
-                // log(`Запрос:`);
-                // log(options);
-                // log(`Ответ:`);
-                // log(json);
+                log(`Сообщение отправлено, чат node ${c.yellowBright(node)}.`, 'g');
                 result = true;
             } else {
-                log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${reqMessage}"`);
+                log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${reqMessage}"`, 'r');
                 log(`Запрос:`);
                 log(options);
                 log(`Ответ:`);
@@ -325,4 +314,4 @@ async function getChatBookmarks() {
     }
 }
 
-export { getMessages, sendMessage, getChatBookmarks, enableAutoResponse, getLastMessageId, getNodeByUserName };
+export { getMessages, sendMessage, getChatBookmarks, autoResponse, enableAutoResponse, getLastMessageId, getNodeByUserName };

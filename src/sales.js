@@ -3,45 +3,54 @@ import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { sendMessage, getNodeByUserName } from './chat.js';
-import { load, updateFile, loadSettings, getConst } from './storage.js';
+import { load, updateFile, getConst } from './storage.js';
 
 const goodsfilePath = 'data/autoIssueGoods.json';
-const config = await loadSettings();
-let goods = load(goodsfilePath);
+const config = global.settings;
+let goods = await load(goodsfilePath);
+let backupOrders = [];
 
-async function enableAutoIssue(timeout) {
-    let backupOrders = await getOrders();
-    let orders = [];
+async function enableAutoIssue() {
+    backupOrders = await getOrders();
 
-    setInterval(async () => {
-        try {
-            log(`Проверяем на наличие новых заказов...`, 'c');
-            orders = await getNewOrders(backupOrders);
-            if(!orders || !orders.newOrders[0]) {
-                //log(`Новых заказов нет.`);
-                return;
-            }
-            log(orders.newOrders);
-    
-            const order = orders.newOrders[0];
-            if(order) {
-                issueGood(order.buyerName, order.name);
-                backupOrders = orders.backupOrders;
-            }
-        } catch (err) {
-            log(`Ошибка при автовыдаче: ${err}`, 'r');
+    if(goods == undefined) {
+        log(`Не удалось запустить автовыдачу, т.к. товары не были загружены.`, 'r');
+        return false;
+    }
+
+    log(`Автовыдача запущена, загружено ${c.yellowBright(goods.length)} товара(ов).`);
+}
+
+async function checkForNewOrders() {
+    try {
+        let orders = [];
+
+        log(`Проверяем на наличие новых заказов...`, 'c');
+        orders = await getNewOrders(backupOrders);
+
+        if(!orders || !orders.newOrders[0]) {
+            //log(`Новых заказов нет.`);
+            return;
         }
-    }, timeout);
 
-    log(`Автовыдача запущена, загружено ${c.bold(goods.length)} товара(ов).`);
+        const order = orders.newOrders[0];
+        if(!order) return;
+
+        log(`Новый заказ ${c.yellowBright(order.id)} от покупателя ${c.yellowBright(order.buyerName)}`);
+        issueGood(order.buyerName, order.name);
+        backupOrders = orders.backupOrders;
+    } catch (err) {
+        log(`Ошибка при автовыдаче: ${err}`, 'r');
+    }
 }
 
 async function issueGood(buyerName, goodName, chatNode = false) {
+    let result = false;
+
     try {
-        let result = false;
         let notInStock = false;
 
-        goods = load(goodsfilePath);
+        goods = await load(goodsfilePath);
         let message = "";
         
         for(let i = 0; i < goods.length; i++) {
@@ -57,7 +66,7 @@ async function issueGood(buyerName, goodName, chatNode = false) {
     
                         if(node.sold == false) {
                             goods[i].nodes[j].sold = true;
-                            updateFile(goods, goodsfilePath);
+                            await updateFile(goods, goodsfilePath);
                             message = node.message;
                             break;
                         }
@@ -86,23 +95,25 @@ async function issueGood(buyerName, goodName, chatNode = false) {
             result = await sendMessage(node, message);
             
             if(result) {
-                log(`Товар "${goodName}" выдан пользователю ${buyerName} с сообщением:`);
+                log(`Товар "${c.yellowBright(goodName)}" выдан покупателю ${c.yellowBright(buyerName)} с сообщением:`);
                 log(message);
             } else {
-                log(`Не удалось отправить товар "${goodName}" пользователю ${buyerName}.`);
+                log(`Не удалось отправить товар "${goodName}" покупателю ${buyerName}.`, 'r');
             }
         } else {
-            log(`Товара "${goodName}" нет в списке автовыдачи, пропускаю.`);
+            log(`Товара "${c.yellowBright(goodName)}" нет в списке автовыдачи, пропускаю.`, 'y');
         }
     } catch (err) {
         log(`Ошибка при выдаче товара: ${err}`, 'r');
     }
+
+    return result;
 }
 
 async function getGood(orderName) {
     let result = false;
     try {
-        goods = load(goodsfilePath);
+        goods = await load(goodsfilePath);
     
         for(let i = 0; i < goods.length; i++) {
             if(orderName == goods[i].name) {
@@ -119,7 +130,7 @@ async function getGood(orderName) {
 
 async function addDeliveredName(orderName, name, orderId) {
     try {
-        goods = load(goodsfilePath);
+        goods = await load(goodsfilePath);
         
         for(let i = 0; i < goods.length; i++) {
             if(orderName === goods[i].name) {
@@ -130,7 +141,7 @@ async function addDeliveredName(orderName, name, orderId) {
                 goods[i].delivered.push({
                     name: name, order: orderId
                 });
-                updateFile(goods, goodsfilePath);
+                await updateFile(goods, goodsfilePath);
                 break;
             }
         }
@@ -142,7 +153,7 @@ async function addDeliveredName(orderName, name, orderId) {
 async function searchOrdersByUserName(userName) {
     let result = [];
     try {
-        goods = load(goodsfilePath);
+        goods = await load(goodsfilePath);
     
         const orders = await getOrders();
     
@@ -236,4 +247,4 @@ async function getOrders() {
     return result;
 }
 
-export { getOrders, getNewOrders, issueGood, searchOrdersByUserName, getGood, addDeliveredName, enableAutoIssue };
+export { getOrders, getNewOrders, issueGood, searchOrdersByUserName, checkForNewOrders, getGood, addDeliveredName, enableAutoIssue };

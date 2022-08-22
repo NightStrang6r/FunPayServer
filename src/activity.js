@@ -3,19 +3,15 @@ import fetch from './fetch.js';
 import { getAllGoods } from './goods.js';
 import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
-import { load, loadSettings, getConst } from './storage.js';
+import { load, getConst } from './storage.js';
 
-const config = await loadSettings();
-const appData = load('data/appData.json');
+const config = global.settings;
+const appData = await load('data/appData.json');
 let goodsState;
 
-async function enableGoodsStateCheck(timeout) {
-    goodsState = load('data/goodsState.json');
-    log(`Автовосстановление лотов запущено, загружено ${c.bold(goodsState.length)} лота(ов).`);
-
-    setInterval(() => {
-        checkGoodsState();
-    }, timeout);
+async function enableGoodsStateCheck() {
+    goodsState = await load('data/goodsState.json');
+    log(`Автовосстановление предложений запущено, загружено ${c.yellowBright(goodsState.length)} предложение(ий).`);
 }
 
 async function checkGoodsState() {
@@ -37,12 +33,12 @@ async function checkGoodsState() {
 
         //log(`Проверка состояния товаров завершена.`);
     } catch (err) {
-        log(`Ошибка при проверке активности лотов: ${err}`, 'r');
+        log(`Ошибка при проверке активности предложений: ${err}`, 'r');
     }
 }
 
 async function setState(state, offer_id, node_id) {
-    log(`Обновляем состояние товара ${offer_id}...`);
+    log(`Обновляем состояние товара ${c.yellowBright(offer_id)}...`, 'c');
     let result = [];
     try {
         const query = `?tag=${getRandomTag()}&offer=${offer_id}&node=${node_id}`;
@@ -130,7 +126,7 @@ async function setState(state, offer_id, node_id) {
         log(`Ошибка при обновлении состояния товара: ${err}`, 'r');
     }
 
-    log(`Состояние товара ${offer_id} обновлено.`, 'g');
+    log(`Состояние товара ${c.yellowBright(offer_id)} обновлено.`, 'g');
     return result;
 }
 

@@ -1,10 +1,9 @@
 import fetch from 'node-fetch';
 import proxy from 'https-proxy-agent';
 import { exit, sleep } from './event.js';
-import { loadSettings } from './storage.js';
 import { log } from './log.js';
 
-const settings = await loadSettings();
+const settings = global.settings;
 let requestsDelay = 0;
 if(settings.requestsDelay) requestsDelay = settings.requestsDelay;
 

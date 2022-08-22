@@ -2,12 +2,12 @@ import fetch from './fetch.js';
 import { log } from './log.js';
 import { exit } from './event.js';
 import { parseDOM } from './DOMParser.js';
-import { load, updateFile, loadSettings, getConst } from './storage.js';
+import { load, updateFile, getConst } from './storage.js';
 
-const config = await loadSettings();
+const config = global.settings;
 const headers = { "cookie": `golden_key=${config.token};`};
 
-let appData = load('data/appData.json');
+let appData = await load('data/appData.json');
 if(!appData.id) {
     const userData = await getUserData();
     if(!userData) await exit();
@@ -108,7 +108,7 @@ async function getUserData() {
             //log('Данные обновлены:', 'g');
             //log(result);
             
-            updateFile(result, 'data/appData.json');
+            await updateFile(result, 'data/appData.json');
         } else {
             log(`Необходимо авторизоваться.`);
         }

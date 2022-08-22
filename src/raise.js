@@ -4,12 +4,12 @@ import { log } from './log.js';
 import { sleep } from './event.js';
 import { load, loadSettings, getConst } from './storage.js';
 
-const config = await loadSettings();
+const config = global.settings;
 let raiseCounter = 0;
 
 async function enableLotsRaise(timeout) {
-    const categories = load('data/categories.json');
-    log(`Автоподнятие запущено, загружено ${c.bold(categories.length)} категория(ий).`);
+    const categories = await load('data/categories.json');
+    log(`Автоподнятие запущено, загружено ${c.yellowBright(categories.length)} категория(ий).`);
 
     raiseLots(categories);
     setInterval(() => {
@@ -21,30 +21,37 @@ async function enableLotsRaise(timeout) {
 async function raiseLots(categories){
     try {
         let error = false;
-        let lotsCounter = 0;
+        let raised = 0;
+        let waiting = 0;
         raiseCounter++;
-        //log(`===================== Поднятие лотов №${raiseCounter} =====================`);
     
         for(let i = 0; i < categories.length; i++) {
             const lot = categories[i];
     
-            lotsCounter++;
             let res = await raiseLot(lot.game_id, lot.node_id);
-            if(res.success && (res.msg.includes("Подождите") || res.msg.includes("подняты"))) {
-                //log(`[${lotsCounter}] Лот ${lot.name}: ${res.msg}`);
-            } else {
+
+            if(!res.success) {
                 error = true;
-                log(`Не удалось поднять лот ${lot.name}: ${res.msg}`);
+                log(`Не удалось поднять предложение ${lot.name}: ${res.msg}`);
+                continue;
+            }
+
+            if(res.msg.includes("Подождите")) {
+                waiting++;
+            }
+
+            if(res.msg.includes("подняты")) {
+                raised++;
             }
     
             await sleep(500);
         }
 
         if(!error) {
-            log(`Лоты подняты.`, 'g');
+            log(`Предложения подняты (${c.yellowBright(waiting)} в ожидании, ${c.yellowBright(raised)} поднято).`, 'g');
         }
     } catch (err) {
-        log(`Ошибка при поднятии лотов: ${err}`, 'r');
+        log(`Ошибка при поднятии предложений: ${err}`, 'r');
     }
 }
 
@@ -92,7 +99,7 @@ async function raiseLot(game_id, node_id) {
 
         return {success: true, msg: res.msg};
     } catch(err) {
-        log(`Ошибка при поднятии лота: ${err}`, 'r');
+        log(`Ошибка при поднятии предложений: ${err}`, 'r');
         return {success: false};
     }
 }

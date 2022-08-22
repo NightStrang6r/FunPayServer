@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import c from 'chalk';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -10,23 +10,27 @@ const _dirname = dirname(_filename);
 
 const dataFolder = 'data';
 const logPath = `${_dirname}/../${dataFolder}/log/`;
-await initStorage();
 
-function initStorage() {
+await initStorage();
+global.settings = await loadSettings();
+
+async function initStorage() {
     try {
         const files = [
             "appData.json", "autoIssueGoods.json", "autoResponse.json", "categories.json", "goodsState.json"
         ];
     
-        if(!fs.existsSync(`${_dirname}/../${dataFolder}`)) {
-            fs.mkdirSync(`${_dirname}/../${dataFolder}`);
+        if(!(await fs.exists(`${_dirname}/../${dataFolder}`))) {
+            await fs.mkdir(`${_dirname}/../${dataFolder}`);
         }
     
-        files.forEach(file => {
-            if(!fs.existsSync(`${_dirname}/../${dataFolder}/${file}`)) {
-                fs.writeFileSync(`${_dirname}/../${dataFolder}/${file}`, '[]');
+        for(let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            if(!(await fs.exists(`${_dirname}/../${dataFolder}/${file}`))) {
+                await fs.writeFile(`${_dirname}/../${dataFolder}/${file}`, '[]');
             }
-        });
+        }
     } catch (err) {
         log(`Не удалось создать файлы хранилища: ${err}`);
     }
@@ -37,20 +41,17 @@ async function loadSettings() {
         let uri = `${_dirname}/../settings.json`;
         let settings = {};
         
-        if(!fs.existsSync(uri)) {
+        if(!(await fs.exists(uri))) {
             settings = {
                 token: "Here is your golden_key from funpay cookies",
                 lotsRaise: true,
                 goodsStateCheck: true, 
                 autoIssue: true, 
-                autoResponse: false, 
+                autoResponse: true, 
                 userDataUpdate: true, 
                 intervals: {
                     lotsRaise: 120,
-                    goodsStateCheck: 120, 
-                    autoIssue: 20, 
-                    autoResponse: 5, 
-                    userDataUpdate: 100
+                    userDataUpdate: 300
                 },
                 autoIssueTestCommand: false,
                 proxy: {
@@ -66,12 +67,12 @@ async function loadSettings() {
             };
 
             settings = JSON.stringify(settings, null, 4);
-            fs.writeFileSync(uri, settings);
+            await fs.writeFile(uri, settings);
             log(c.cyan('Файл settings.json создан. Пропишите свой "golden_key" из куки funpay в поле "token" данного файла, после чего перезапустите программу.'));
             await exit();
         }
 
-        const rawdata = fs.readFileSync(uri);
+        const rawdata = await fs.readFile(uri);
         settings = JSON.parse(rawdata);
 
         if(!checkToken(settings.token)) {
@@ -81,22 +82,22 @@ async function loadSettings() {
 
         return settings;
     } catch (err) {
-        log(`Ошибка при загрузке файла настроек: ${err}. Программаа будет закрыта.`, 'r');
+        log(`Ошибка при загрузке файла настроек: ${err}. Программа будет закрыта.`, 'r');
         await exit();
     }
 }
 
-function load(uri) {
+async function load(uri) {
     let result = false;
     try {
         uri = `${_dirname}/../${uri}`;
         
-        if(!fs.existsSync(uri)) {
-            fs.writeFileSync(uri, '');
+        if(!(await fs.exists(uri))) {
+            await fs.writeFile(uri, '');
             return result;
         }
 
-        const rawdata = fs.readFileSync(uri, 'utf-8');
+        const rawdata = await fs.readFile(uri, 'utf-8');
         result = JSON.parse(rawdata);
     } catch (err) {
         log(`Ошибка при загрузке файла "${uri}". Возможно файл имеет неверную кодировку (поддерживается UTF-8): ${err}`, 'r');
@@ -104,16 +105,18 @@ function load(uri) {
     return result;
 }
 
-function updateFile(content, filePath) {
+async function updateFile(content, filePath) {
     let result = false;
     filePath = `${_dirname}/../${filePath}`;
+
     try {
-        fs.writeFileSync(filePath, JSON.stringify(content, null, 4));
+        await fs.writeFile(filePath, JSON.stringify(content, null, 4));
         result = true;
     } catch(err) {
         log(`Ошибка записи файла: ${err}`, 'r');
         result = false;
     }
+
     return result;
 }
 
@@ -130,17 +133,17 @@ function getConst(name) {
 
 async function logToFile(msg) {
     try {
-        if(!fs.existsSync(logPath)) {
-            fs.mkdirSync(logPath);
+        if(!(await fs.exists(logPath))) {
+            await fs.mkdir(logPath);
         }
 
         const time = getDate();
         const logFile = `${logPath}log-${time.day}-${time.month}-${time.year}.txt`;
-        if(!fs.existsSync(logFile)) {
-            fs.writeFileSync(logFile, '');
+        if(!(await fs.exists(logFile))) {
+            await fs.writeFile(logFile, '');
         }
 
-        fs.appendFileSync(logFile, `${msg}\n`);
+        await fs.appendFile(logFile, `${msg}\n`);
     } catch(err) {
         log(`Ошибка записи файла: ${err}`, 'r');
     }

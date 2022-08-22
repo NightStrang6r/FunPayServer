@@ -1,11 +1,12 @@
 {
   "name": "funpayserver",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "CLI app for auto-managing your FunPay account",
   "main": "src/index.js",
   "dependencies": {
     "chalk": "^5.0.1",
     "commander": "^9.4.0",
+    "fs-extra": "^10.1.0",
     "imap-simple": "^5.1.0",
     "jsdom": "^19.0.0",
     "lodash": "^4.17.21",

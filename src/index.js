@@ -4,13 +4,15 @@ import { loadSettings } from './storage.js';
 import { log } from './log.js';
 import { exit } from './event.js';
 import { enableLotsRaise } from './raise.js';
-import { enableGoodsStateCheck } from './activity.js';
 import { updateGoodsState } from './goods.js';
-import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 import { updateCategoriesData } from './categories.js';
+import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 
-import { getMessages, sendMessage, getChatBookmarks, enableAutoResponse, getLastMessageId, getNodeByUserName } from './chat.js';
-import { getOrders, getNewOrders, issueGood, searchOrdersByUserName, enableAutoIssue } from './sales.js';
+import Runner from './runner.js';
+
+import { enableAutoResponse, autoResponse } from './chat.js';
+import { checkForNewOrders, enableAutoIssue } from './sales.js';
+import { checkGoodsState, enableGoodsStateCheck } from './activity.js';
 
 // UncaughtException Handler
 process.on('uncaughtException', (e) => {
@@ -35,7 +37,7 @@ if(options && options.countProfit) {
 }
 
 // Loading data
-const settings = await loadSettings();
+const settings = global.settings;
 
 log(`Получаем данные пользователя...`, 'c');
 const userData = await getUserData();
@@ -48,18 +50,48 @@ if(settings.lotsRaise == true)
 if(settings.goodsStateCheck == true)
     await updateGoodsState();
 
+const runner = new Runner();
+
 // Starting threads
 if(settings.lotsRaise == true) 
     enableLotsRaise(settings.intervals.lotsRaise * 1000);
 
-if(settings.goodsStateCheck == true) 
-    enableGoodsStateCheck(settings.intervals.goodsStateCheck * 1000);
+if(settings.goodsStateCheck == true || settings.autoIssue == true) {
+    runner.registerNewOrderCallback(onNewOrder);
+}
 
-if(settings.autoIssue == true) 
-    enableAutoIssue(settings.intervals.autoIssue * 1000);
+if(settings.goodsStateCheck == true) {
+    enableGoodsStateCheck();
+}
 
-if(settings.autoResponse == true) 
-    enableAutoResponse(settings.intervals.autoResponse * 1000);
+if(settings.autoIssue == true) {
+    enableAutoIssue();
+}
+
+if(settings.autoResponse == true) {
+    runner.registerNewMessageCallback(onNewMessage);
+    enableAutoResponse();
+}
 
 if(settings.userDataUpdate == true) 
     enableUserDataUpdate(settings.intervals.userDataUpdate * 1000);
+
+// Start runner loop
+if(settings.autoIssue == true || settings.autoResponse == true) {
+    await runner.start();
+}
+
+// Callbacks
+function onNewMessage() {
+    autoResponse();
+}
+
+function onNewOrder() {
+    if(settings.autoIssue == true) {
+        checkForNewOrders();
+    }
+
+    if(settings.goodsStateCheck == true) {
+        checkGoodsState();
+    }
+}
