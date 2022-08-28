@@ -48,8 +48,6 @@ async function issueGood(buyerName, goodName, chatNode = false) {
     let result = false;
 
     try {
-        let notInStock = false;
-
         goods = await load(goodsfilePath);
         let message = "";
         
@@ -61,6 +59,8 @@ async function issueGood(buyerName, goodName, chatNode = false) {
                 } 
                 else
                 if(goods[i].nodes != undefined) {
+                    let notInStock = true;
+
                     for(let j = 0; j < goods[i].nodes.length; j++) {
                         const node = goods[i].nodes[j];
     
@@ -68,18 +68,17 @@ async function issueGood(buyerName, goodName, chatNode = false) {
                             goods[i].nodes[j].sold = true;
                             await updateFile(goods, goodsfilePath);
                             message = node.message;
+                            notInStock = false;
                             break;
                         }
                     }
-                    notInStock = true;
-                    break;
+
+                    if(notInStock) {
+                        log(`Похоже, товар "${goodName}" закончился, выдавать нечего.`);
+                        return 'notInStock';
+                    }
                 }
             }
-        }
-
-        if(notInStock) {
-            log(`Похоже, товар "${goodName}" закончился, выдавать нечего.`);
-            return 'notInStock';
         }
 
         if(message != "") {
