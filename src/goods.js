@@ -1,8 +1,8 @@
 import fetch from './fetch.js';
 import { headers } from './account.js';
 import { parseDOM } from './DOMParser.js';
-import { getAllCategories } from './categories.js';
-import { load, updateFile } from './storage.js';
+import { updateCategoriesData } from './categories.js';
+import { load, updateFile, getConst } from './storage.js';
 import { log } from './log.js';
 
 let appData = await load('data/appData.json');
@@ -27,9 +27,22 @@ async function updateGoodsState() {
 async function getAllGoods(userId, full = false) {
     let result = [];
     try {
-        const cat = await getAllCategories(userId);
+        let cat = await load('data/categories.json');
+
+        if(!cat || cat.length == 0) {
+            cat = await updateCategoriesData();
+        }
+        
         for(let i = 0; i < cat.length; i++) {
-            const goods = await getGoodsFromCategory(cat[i], full);
+            let link = '';
+
+            if(typeof cat[i] == 'object') {
+                link = `${getConst('api')}/lots/${cat[i].node_id}/trade`;
+            } else {
+                link = cat[i];
+            }
+            
+            const goods = await getGoodsFromCategory(link, full);
             goods.forEach(good => {
                 result[result.length] = good;
             });

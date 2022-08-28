@@ -14,6 +14,7 @@ async function updateCategoriesData() {
 
     await updateFile(data, `data/categories.json`);
     log(`Список категорий обновлён.`, 'g');
+    return data;
 }
 
 async function getCategoriesData(categories) {
@@ -69,6 +70,8 @@ async function getAllCategories(id) {
         const categories = doc.querySelectorAll(".offer-list-title-button");
 
         for(let i = 0; i < categories.length; i++) {
+            if(categories[i].firstElementChild.href.includes('chips')) continue;
+            
             result[i] = categories[i].firstElementChild.href;
         }
     } catch (err) {
