@@ -17,7 +17,7 @@ global.settings = await loadSettings();
 async function initStorage() {
     try {
         const files = [
-            "appData.json", "autoIssueGoods.json", "autoResponse.json", "categories.json", "goodsState.json"
+            "appData.json", "autoIssueGoods.json", "autoResponse.json", "categories.json", "categoriesCache.json", "goodsState.json"
         ];
     
         if(!(await fs.exists(`${_dirname}/../${dataFolder}`))) {
@@ -100,7 +100,7 @@ async function load(uri) {
         const rawdata = await fs.readFile(uri, 'utf-8');
         result = JSON.parse(rawdata);
     } catch (err) {
-        log(`Ошибка при загрузке файла "${uri}". Возможно файл имеет неверную кодировку (поддерживается UTF-8): ${err}`, 'r');
+        log(`Ошибка при загрузке файла "${uri}". Возможно файл имеет неверную кодировку (поддерживается UTF-8), либо неверный формат JSON: ${err}`, 'r');
     }
     return result;
 }

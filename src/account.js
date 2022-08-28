@@ -57,6 +57,7 @@ async function countTradeProfit() {
                     ordersCount++;
                     let price = item.querySelector(".tc-price").childNodes[0].data;
                     price = Number(price);
+                    if(isNaN(price)) return;
                     result += price;
                 }
             });
