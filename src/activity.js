@@ -1,6 +1,6 @@
 import c from 'chalk';
 import fetch from './fetch.js';
-import { getAllGoods } from './goods.js';
+import { getAllGoods, getActiveProducts } from './goods.js';
 import { parseDOM } from './DOMParser.js';
 import { log } from './log.js';
 import { load, getConst } from './storage.js';
@@ -11,23 +11,25 @@ let goodsState;
 
 async function enableGoodsStateCheck() {
     goodsState = await load('data/goodsState.json');
-    log(`Автовосстановление предложений запущено, загружено ${c.yellowBright(goodsState.length)} предложение(ий).`);
+    log(`Автовосстановление предложений запущено, загружено ${c.yellowBright(goodsState.length)} активных предложение(ий).`);
 }
 
 async function checkGoodsState() {
     try {
         log(`Проверяем состояние товаров на наличие изменений...`, 'c');
-        const goodsNow = await getAllGoods(appData.id);
+        const goodsNow = await getActiveProducts(appData.id);
         const goodsBackup = goodsState;
 
-        for(let i = 0; i < goodsNow.length; i++) {
-            for(let j = 0; j < goodsBackup.length; j++) {
-                if(goodsNow[i].offer_id == goodsBackup[j].offer_id) {
-                    if(!goodsNow[i].active && goodsBackup[j].active) {
-                        //log(`Найдено расхождение: ${goodsNow[i].offer_id} ${goodsNow[i].active}`);
-                        await setState(true, goodsNow[i].offer_id, goodsNow[i].node_id);
-                    }
+        for(let i = 0; i < goodsBackup.length; i++) {
+            let exists = false;
+            for(let j = 0; j < goodsNow.length; j++) {
+                if(goodsBackup[i].offer_id == goodsNow[j].offer_id) {
+                    exists = true;
                 }
+            }
+
+            if(!exists) {
+                await setState(true, goodsBackup[i].offer_id, goodsBackup[i].node_id);
             }
         }
 

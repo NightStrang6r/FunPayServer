@@ -4,7 +4,6 @@ import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
 import { load, loadSettings, getConst } from './storage.js';
 import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
-import { getSteamCode } from './email.js';
 import { getRandomTag } from './activity.js';
 
 const config = global.settings;
@@ -61,51 +60,6 @@ async function autoResponse() {
                     break;
                 }
             }
-
-            /*if(chat.message.toLowerCase() == "!код") {
-                const orders = await searchOrdersByUserName(chat.userName);
-                if(orders.length == 0) {
-                    await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`);
-                    isAutoRespBusy = false;
-                    break;
-                }
-                const order = orders[0];
-                const good = await getGood(order.name);
-                const delivered = good.delivered;
-                let alreadyDelivered = false;
-            
-                for(let i = 0; i < delivered.length; i++) {
-                    if(delivered[i].name == order.buyerName && delivered[i].order == order.id) {
-                        alreadyDelivered = true;
-                        break;
-                    }
-                }
-    
-                if(!alreadyDelivered) {
-                    //sendMessage(chat.node, `Получаем код. Пожалуйста, подождите.`);
-                    const codeResult = await getSteamCode(good.email, good.pass, good.server);
-                    let code = false;
-
-                    if(codeResult.error != true) {
-                        code = codeResult.code;
-                    } else {
-                        if(codeResult.msg == "no-new-mails") {
-                            await sendMessage(chat.node, `На данный момент новых кодов нет. Убедитесь, что вошли в нужный аккаунт в нужном лаунчере, либо попробуйте ещё раз через минуту.`);
-                            break;
-                        }
-                    }
-
-                    if(code) {
-                        const res = await sendMessage(chat.node, `Code: ${code}`);
-                        if(res) {
-                            await addDeliveredName(order.name, order.buyerName, order.id);
-                        }
-                    }
-                } else {
-                    await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`);
-                }
-                break;
-            }*/
         }
     } catch (err) {
         log(`Ошибка при автоответе: ${err}`, 'r');

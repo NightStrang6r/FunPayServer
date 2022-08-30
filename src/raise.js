@@ -5,20 +5,59 @@ import { sleep } from './event.js';
 import { load, loadSettings, getConst } from './storage.js';
 
 const config = global.settings;
-let raiseCounter = 0;
 
-async function enableLotsRaise(timeout) {
-    const categories = await load('data/categories.json');
+async function enableLotsRaise() {
+    let categories = await load('data/categories.json');
+    
+    for(let i = 0; i < categories.length; i++) {
+        categories[i].time = 0;
+    }
+
     log(`Автоподнятие запущено, загружено ${c.yellowBright(categories.length)} категория(ий).`);
 
-    raiseLots(categories);
+    await raiseLotsIfTime(categories);
     setInterval(() => {
-        raiseLots(categories);
+        raiseLotsIfTime(categories);
     },
-    timeout);
+    10000);
 }
 
-async function raiseLots(categories){
+async function raiseLotsIfTime(categories) {
+    try {    
+        for(let i = 0; i < categories.length; i++) {
+            const cat = categories[i];
+            const date = new Date();
+            const now = date.getTime();
+    
+            if(now < cat.time) continue;
+                
+            let res = await raiseLot(cat.game_id, cat.node_id);
+
+            if(!res.success) {
+                error = true;
+                log(`Не удалось поднять предложение ${cat.name}: ${res.msg}`);
+                cat.time = getNewTiming();
+                continue;
+            }
+
+            if(res.msg.includes("Подождите")) {
+                cat.time = getNewTiming(res.msg);
+            }
+
+            if(res.msg.includes("подняты")) {
+                cat.time = getNewTiming(1800000);
+                log(`Предложения в категории '${c.yellowBright(cat.name)}' подняты (${c.yellowBright(categories.length - 1)} категорий в ожидании).`, 'g');
+            }
+
+            //log(`Обновлены данные ${cat.name}, время ${cat.time}`);
+            await sleep(500);
+        }
+    } catch (err) {
+        log(`Ошибка при поднятии предложений: ${err}`, 'r');
+    }
+}
+
+async function raiseLots(categories) {
     try {
         let error = false;
         let raised = 0;
@@ -104,4 +143,42 @@ async function raiseLot(game_id, node_id) {
     }
 }
 
-export { raiseLots, enableLotsRaise };
+function getNewTiming(msg) {
+    const date = new Date();
+    const now = date.getTime();
+
+    if(!msg) return now + 60000; // 1 минута
+    if(typeof msg == 'number') return now + msg;
+
+    if(msg.includes('час')) {
+        let num = getNumber(msg);
+        if(!num) return now + 3600000;
+        return now + (num * 3600000);
+    }
+
+    if(msg.includes('минут')) {
+        let num = getNumber(msg);
+        if(!num) return now + 60000;
+        return now + (num * 60000);
+    }
+
+    if(msg.includes('секунд')) {
+        let num = getNumber(msg);
+        if(!num) return now + 30000;
+        return now + (num * 1000);
+    }
+
+    return now + 60000;
+}
+
+function getNumber(string) {
+    let r = /\d+/;
+    let num = Number(string.match(r));
+
+    if(isNaN(num) || num == 0) 
+        return null;
+    
+    return num;
+}
+
+export { enableLotsRaise };

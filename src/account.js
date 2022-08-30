@@ -71,7 +71,7 @@ async function countTradeProfit() {
 
 function enableUserDataUpdate(timeout) {
     setInterval(getUserData, timeout);
-    log(`Автоматический апдейт данных запущен.`);
+    //log(`Автоматический апдейт данных запущен.`);
 }
 
 async function getUserData() {

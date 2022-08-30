@@ -54,7 +54,7 @@ const runner = new Runner();
 
 // Starting threads
 if(settings.lotsRaise == true) 
-    enableLotsRaise(settings.intervals.lotsRaise * 1000);
+    enableLotsRaise();
 
 if(settings.goodsStateCheck == true || settings.autoIssue == true) {
     runner.registerNewOrderCallback(onNewOrder);
@@ -73,8 +73,7 @@ if(settings.autoResponse == true) {
     enableAutoResponse();
 }
 
-if(settings.userDataUpdate == true) 
-    enableUserDataUpdate(settings.intervals.userDataUpdate * 1000);
+enableUserDataUpdate(300 * 1000);
 
 // Start runner loop
 if(settings.autoIssue == true || settings.autoResponse == true) {

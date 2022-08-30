@@ -9,7 +9,7 @@ let appData = await load('data/appData.json');
 
 async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`, 'c');
-    const data = await getAllGoods(appData.id);
+    const data = await getActiveProducts(appData.id);
 
     await updateFile(data, `data/goodsState.json`);
     log(`Список состояния товаров обновлён.`, 'g');
@@ -100,4 +100,42 @@ async function getGoodsFromCategory(category, full = false) {
     return result;
 }
 
-export { getGoodsFromCategory, getAllGoods, updateGoodsState };
+async function getActiveProducts(id) {
+    let result = [];
+
+    try {
+        const link = `${getConst('api')}/users/${id}/`;
+
+        const resp = await fetch(link);
+        const body = await resp.text();
+        const doc = parseDOM(body);
+
+        const mb20 = doc.querySelector('.mb20');
+        const offers = mb20.querySelectorAll('.offer');
+
+        for(let i = 0; i < offers.length; i++) {
+            const offer = offers[i];
+            const title = offer.querySelector('.offer-list-title a');
+            const link = title.href;
+            if(link.includes('chips')) continue;
+            const node = link.split('/')[4];
+
+            const lots = offer.querySelectorAll('div[data-section-type="lot"] a');
+            for(let j = 0; j < lots.length; j++) {
+                const lot = lots[j];
+                const offerId = lot.href.split('id=')[1];
+
+                result.push({
+                    node_id: node,
+                    offer_id: offerId
+                });
+            }
+        }
+    } catch(err) {
+        log(`Ошибка при получении товаров: ${err}`, 'r');
+    }
+
+    return result;
+}
+
+export { getGoodsFromCategory, getAllGoods, getActiveProducts, updateGoodsState };

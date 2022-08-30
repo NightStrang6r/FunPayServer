@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import c from 'chalk';
+import inq from 'inquirer';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { log, getDate } from './log.js';
@@ -42,17 +43,14 @@ async function loadSettings() {
         let settings = {};
         
         if(!(await fs.exists(uri))) {
+            const answers = await askSettings();
+
             settings = {
-                token: "Here is your golden_key from funpay cookies",
-                lotsRaise: true,
-                goodsStateCheck: true, 
-                autoIssue: true, 
-                autoResponse: true, 
-                userDataUpdate: true, 
-                intervals: {
-                    lotsRaise: 120,
-                    userDataUpdate: 300
-                },
+                token: answers.token,
+                lotsRaise: answers.lotsRaise,
+                goodsStateCheck: answers.goodsStateCheck, 
+                autoIssue: answers.autoIssue, 
+                autoResponse: answers.autoResponse, 
                 autoIssueTestCommand: false,
                 proxy: {
                     useProxy: false,
@@ -68,12 +66,12 @@ async function loadSettings() {
 
             settings = JSON.stringify(settings, null, 4);
             await fs.writeFile(uri, settings);
-            log(c.cyan('Файл settings.json создан. Пропишите свой "golden_key" из куки funpay в поле "token" данного файла, после чего перезапустите программу.'));
-            await exit();
         }
 
-        const rawdata = await fs.readFile(uri);
-        settings = JSON.parse(rawdata);
+        if(!settings.token) {
+            const rawdata = await fs.readFile(uri);
+            settings = JSON.parse(rawdata);
+        }
 
         if(!checkToken(settings.token)) {
             log('Невалидный токен (golden_key).', 'r');
@@ -147,6 +145,81 @@ async function logToFile(msg) {
     } catch(err) {
         log(`Ошибка записи файла: ${err}`, 'r');
     }
+}
+
+async function askSettings() {
+    const question1 = await inq.prompt({
+        name: 'golden_key',
+        type: 'input',
+        message: `Введите golden_key. Его можно получить из cookie с сайта FunPay при помощи расширения EditThisCookie:`,
+        validate: function (input) {
+            // Declare function as asynchronous, and save the done callback
+            const done = this.async();
+        
+            if (!checkToken(input)) {
+                done('Невалидный токен (golden_key).');
+                return;
+            }
+
+            done(null, true);
+          }
+    });
+
+    console.log(`${c.green('Отлично! Токен принят.')}`);
+
+    const question2 = await inq.prompt({
+        name: 'autoSettings',
+        type: 'list',
+        message: `Запуск бота выполняется впервые. Вы хотите настроить функции бота или оставить все параметры по умолчанию? Эти параметры всегда можно поменять в файле ${c.yellowBright('settings.json')}:`,
+        choices: ['Оставить по умолчанию', 'Настроить']
+    });
+
+    if(question2.autoSettings == 'Оставить по умолчанию') {
+        console.log();
+        return {
+            token: question1.golden_key,
+            lotsRaise: true,
+            goodsStateCheck: true,
+            autoIssue: true,
+            autoResponse: true,
+        }
+    }
+
+    const answers = await inq.prompt([{
+        name: 'lotsRaise',
+        type: 'list',
+        message: `Включить функцию автоматического поднятия предложений?`,
+        choices: ['Да', 'Нет']
+    },
+    {
+        name: 'autoIssue',
+        type: 'list',
+        message: `Включить функцию автовыдачи товаров (не забудьте потом её настроить в файле autoIssueGoods.json)?`,
+        choices: ['Да', 'Нет']
+    },
+    {
+        name: 'goodsStateCheck',
+        type: 'list',
+        message: `Включить функцию автоактивации товаров после продажи?`,
+        choices: ['Да', 'Нет']
+    },
+    {
+        name: 'autoResponse',
+        type: 'list',
+        message: `Включить функцию автоответа на команды (настройка в файле autoResponse.json)?`,
+        choices: ['Да', 'Нет']
+    }]);
+
+    const askSettings = {
+        token: question1.golden_key,
+        lotsRaise: (answers.lotsRaise == 'Да') ? true : false,
+        goodsStateCheck: (answers.goodsStateCheck == 'Да') ? true : false, 
+        autoIssue: (answers.autoIssue == 'Да') ? true : false, 
+        autoResponse: (answers.autoResponse == 'Да') ? true : false, 
+    }
+
+    console.log();
+    return askSettings;
 }
 
 export { updateFile, initStorage, load, loadSettings, logToFile, getConst };
