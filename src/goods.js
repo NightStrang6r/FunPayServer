@@ -5,11 +5,9 @@ import { updateCategoriesData } from './categories.js';
 import { load, updateFile, getConst } from './storage.js';
 import { log } from './log.js';
 
-let appData = await load('data/appData.json');
-
 async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`, 'c');
-    const data = await getActiveProducts(appData.id);
+    const data = await getActiveProducts(global.appData.id);
 
     await updateFile(data, `data/goodsState.json`);
     log(`Список состояния товаров обновлён.`, 'g');

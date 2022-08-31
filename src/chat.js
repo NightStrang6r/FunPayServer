@@ -2,13 +2,12 @@ import fetch from './fetch.js';
 import c from 'chalk';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
-import { load, loadSettings, getConst } from './storage.js';
+import { load, getConst } from './storage.js';
 import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
 import { getRandomTag } from './activity.js';
 
 const config = global.settings;
 const autoRespData = await load('data/autoResponse.json');
-let appData = await load('data/appData.json');
 
 let isAutoRespBusy = false;
 
@@ -73,7 +72,7 @@ async function autoResponse() {
 async function getMessages(senderId) {
     let result = false;
     try {
-        const url = `${getConst('api')}/chat/history?node=users-${appData.id}-${senderId}&last_message=1000000000`;
+        const url = `${getConst('api')}/chat/history?node=users-${global.appData.id}-${senderId}&last_message=1000000000`;
         const headers = { 
             "cookie": `golden_key=${config.token}`,
             "x-requested-with": "XMLHttpRequest"
@@ -121,12 +120,10 @@ async function sendMessage(node, message, customNode = false) {
         while(result == false) {
             if(tries > maxRetries) break;
 
-            appData = await load('data/appData.json');
-
             const url = `${getConst('api')}/runner/`;
             const headers = {
                 "accept": "*/*",
-                "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
+                "cookie": `golden_key=${config.token}; PHPSESSID=${global.appData.sessid}`,
                 "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
                 "x-requested-with": "XMLHttpRequest"
             };
@@ -134,7 +131,7 @@ async function sendMessage(node, message, customNode = false) {
             let lastMessageId = 1000000000;
             if(customNode) {
                 lastMessageId = await getLastMessageId(node);
-                node = `users-${appData.id}-${node}`;
+                node = `users-${global.appData.id}-${node}`;
             }
 
             let reqMessage = message;
@@ -154,7 +151,7 @@ async function sendMessage(node, message, customNode = false) {
             const params = new URLSearchParams();
             params.append('objects', '');
             params.append('request', JSON.stringify(request));
-            params.append('csrf_token', appData.csrfToken);
+            params.append('csrf_token', global.appData.csrfToken);
 
             const options = {
                 method: 'POST',
@@ -214,14 +211,14 @@ async function getChatBookmarks() {
         const url = `${getConst('api')}/runner/`;
         const headers = {
             "accept": "*/*",
-            "cookie": `golden_key=${config.token}; PHPSESSID=${appData.sessid}`,
+            "cookie": `golden_key=${config.token}; PHPSESSID=${global.appData.sessid}`,
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest"
         };
     
         const chat_bookmarks =  {
             "type": "chat_bookmarks",
-            "id": `${appData.id}`,
+            "id": `${global.appData.id}`,
             "tag": `${getRandomTag()}`,
             "data": false
         };
@@ -230,7 +227,7 @@ async function getChatBookmarks() {
         const params = new URLSearchParams();
         params.append('objects', JSON.stringify(objects));
         params.append('request', false);
-        params.append('csrf_token', appData.csrfToken);
+        params.append('csrf_token', global.appData.csrfToken);
     
         const options = {
             method: 'POST',

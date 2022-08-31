@@ -42,14 +42,15 @@ async function raiseLotsIfTime(categories) {
 
             if(res.msg.includes("Подождите")) {
                 cat.time = getNewTiming(res.msg);
+                //log(`Предложения в категории '${c.yellowBright(cat.name)}' ещё поднимать рано. Следующее поднятие: ${c.yellowBright(res.msg)} / ${c.yellowBright(new Date(cat.time).toString())}`, 'c');
             }
 
             if(res.msg.includes("подняты")) {
-                cat.time = getNewTiming(1800000);
-                log(`Предложения в категории '${c.yellowBright(cat.name)}' подняты (${c.yellowBright(categories.length - 1)} категорий в ожидании).`, 'g');
+                res = await raiseLot(cat.game_id, cat.node_id);
+                cat.time = getNewTiming(res.msg);
+                log(`Предложения в категории '${c.yellowBright(cat.name)}' подняты. Следующее поднятие: ${c.yellowBright(res.msg)}`, 'g');
             }
 
-            //log(`Обновлены данные ${cat.name}, время ${cat.time}`);
             await sleep(500);
         }
     } catch (err) {
@@ -152,19 +153,19 @@ function getNewTiming(msg) {
 
     if(msg.includes('час')) {
         let num = getNumber(msg);
-        if(!num) return now + 3600000;
-        return now + (num * 3600000);
+        if(num == null) return now + 1800000;
+        return now + ((num - 1) * 3600000);
     }
 
     if(msg.includes('минут')) {
         let num = getNumber(msg);
-        if(!num) return now + 60000;
+        if(num == null) return now + 60000;
         return now + (num * 60000);
     }
 
     if(msg.includes('секунд')) {
         let num = getNumber(msg);
-        if(!num) return now + 30000;
+        if(num == null) return now + 30000;
         return now + (num * 1000);
     }
 

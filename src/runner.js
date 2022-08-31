@@ -24,7 +24,7 @@ class Runner {
 
     async loop() {
         try {
-            const appData = await load('data/appData.json');
+            const appData = global.appData;
 
             const url = `${getConst('api')}/runner/`;
             const headers = {

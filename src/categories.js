@@ -4,12 +4,11 @@ import { load, getConst, updateFile } from './storage.js';
 import { parseDOM } from './DOMParser.js';
 import { headers } from './account.js';
 
-const appData = await load('data/appData.json');
 let categoriesCache = await load('data/categoriesCache.json');
 
 async function updateCategoriesData() {
     log(`Обновляем список категорий...`, 'c');
-    const cat = await getAllCategories(appData.id);
+    const cat = await getAllCategories(global.appData.id);
     const data = await getCategoriesData(cat);
 
     await updateFile(data, `data/categories.json`);

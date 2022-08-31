@@ -6,7 +6,6 @@ import { log } from './log.js';
 import { load, getConst } from './storage.js';
 
 const config = global.settings;
-const appData = await load('data/appData.json');
 let goodsState;
 
 async function enableGoodsStateCheck() {
@@ -17,7 +16,7 @@ async function enableGoodsStateCheck() {
 async function checkGoodsState() {
     try {
         log(`Проверяем состояние товаров на наличие изменений...`, 'c');
-        const goodsNow = await getActiveProducts(appData.id);
+        const goodsNow = await getActiveProducts(global.appData.id);
         const goodsBackup = goodsState;
 
         for(let i = 0; i < goodsBackup.length; i++) {

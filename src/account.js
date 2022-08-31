@@ -2,15 +2,14 @@ import fetch from './fetch.js';
 import { log } from './log.js';
 import { exit } from './event.js';
 import { parseDOM } from './DOMParser.js';
-import { load, updateFile, getConst } from './storage.js';
+import { getConst } from './storage.js';
 
 const config = global.settings;
 const headers = { "cookie": `golden_key=${config.token};`};
 
-let appData = await load('data/appData.json');
-if(!appData.id) {
-    const userData = await getUserData();
-    if(!userData) await exit();
+if(!global.appData || !global.appData.id) {
+    global.appData = await getUserData();
+    if(!global.appData) await exit();
 }
 
 async function countTradeProfit() {
@@ -54,14 +53,14 @@ async function countTradeProfit() {
             items.forEach(item => {
                 const status = item.querySelector(".tc-status").innerHTML;
                 if(status == `Закрыт`) {
-                    ordersCount++;
                     let price = item.querySelector(".tc-price").childNodes[0].data;
                     price = Number(price);
                     if(isNaN(price)) return;
                     result += price;
+                    ordersCount++;
                 }
             });
-            log(`Продажи: ${ordersCount}; Заработок: ${result} ₽`);
+            log(`Продажи: ${ordersCount}. Заработок: ${result.toFixed(2)} ₽. Средний чек: ${(result / ordersCount).toFixed(2)} ₽.`);
         }
     } catch (err) {
         log(`Ошибка при подсчёте профита: ${err}`, 'r');
@@ -99,7 +98,7 @@ async function getUserData() {
 
         const PHPSESSID = setCookie.split(';')[0].split('=')[1];
 
-        if(appData.userId != 0) {
+        if(appData.userId && appData.userId != 0) {
             result = {
                 id: appData.userId,
                 csrfToken: appData["csrf-token"],
@@ -109,7 +108,7 @@ async function getUserData() {
             //log('Данные обновлены:', 'g');
             //log(result);
             
-            await updateFile(result, 'data/appData.json');
+            global.appData = result;
         } else {
             log(`Необходимо авторизоваться.`);
         }

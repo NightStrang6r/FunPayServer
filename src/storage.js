@@ -18,7 +18,7 @@ global.settings = await loadSettings();
 async function initStorage() {
     try {
         const files = [
-            "appData.json", "autoIssueGoods.json", "autoResponse.json", "categories.json", "categoriesCache.json", "goodsState.json"
+            "autoIssueGoods.json", "autoResponse.json", "categories.json", "categoriesCache.json", "goodsState.json"
         ];
     
         if(!(await fs.exists(`${_dirname}/../${dataFolder}`))) {
