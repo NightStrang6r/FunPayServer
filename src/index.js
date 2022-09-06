@@ -76,7 +76,7 @@ if(settings.autoResponse == true) {
 enableUserDataUpdate(300 * 1000);
 
 // Start runner loop
-if(settings.autoIssue == true || settings.autoResponse == true) {
+if(settings.alwaysOnline == true || settings.autoIssue == true || settings.autoResponse == true || settings.goodsStateCheck == true) {
     await runner.start();
 }
 

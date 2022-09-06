@@ -47,6 +47,7 @@ async function loadSettings() {
 
             settings = {
                 token: answers.token,
+                alwaysOnline: answers.alwaysOnline,
                 lotsRaise: answers.lotsRaise,
                 goodsStateCheck: answers.goodsStateCheck, 
                 autoIssue: answers.autoIssue, 
@@ -178,6 +179,7 @@ async function askSettings() {
         console.log();
         return {
             token: question1.golden_key,
+            alwaysOnline: true,
             lotsRaise: true,
             goodsStateCheck: true,
             autoIssue: true,
@@ -186,6 +188,11 @@ async function askSettings() {
     }
 
     const answers = await inq.prompt([{
+        name: 'alwaysOnline',
+        type: 'list',
+        message: `Включить функцию вечного онлайна?`,
+        choices: ['Да', 'Нет']
+    },{
         name: 'lotsRaise',
         type: 'list',
         message: `Включить функцию автоматического поднятия предложений?`,
@@ -212,6 +219,7 @@ async function askSettings() {
 
     const askSettings = {
         token: question1.golden_key,
+        alwaysOnline: (answers.alwaysOnline == 'Да') ? true : false,
         lotsRaise: (answers.lotsRaise == 'Да') ? true : false,
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? true : false, 
         autoIssue: (answers.autoIssue == 'Да') ? true : false, 

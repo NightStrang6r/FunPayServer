@@ -1,4 +1,5 @@
 import c from 'chalk';
+import clone from 'clone';
 import fetch from './fetch.js';
 import { log } from './log.js';
 import { parseDOM } from './DOMParser.js';
@@ -28,17 +29,24 @@ async function checkForNewOrders() {
         log(`Проверяем на наличие новых заказов...`, 'c');
         orders = await getNewOrders(backupOrders);
 
-        if(!orders || !orders.newOrders[0]) {
-            //log(`Новых заказов нет.`);
+        if(!orders || orders.newOrders.length == 0) {
+            log(`Новых заказов нет.`, 'c');
             return;
         }
 
-        const order = orders.newOrders[0];
-        if(!order) return;
+        for(let i = 0; i < orders.newOrders.length; i++) {
+            const order = orders.newOrders[i];
 
-        log(`Новый заказ ${c.yellowBright(order.id)} от покупателя ${c.yellowBright(order.buyerName)}`);
-        issueGood(order.buyerName, order.name);
-        backupOrders = orders.backupOrders;
+            if(!order) {
+                log('!order', 'c');
+                return;
+            }
+    
+            log(`Новый заказ ${c.yellowBright(order.id)} от покупателя ${c.yellowBright(order.buyerName)} на сумму ${c.yellowBright(order.price)} ₽.`);
+            await issueGood(order.buyerName, order.name);
+        }
+        
+        backupOrders = clone(orders.backupOrders);
     } catch (err) {
         log(`Ошибка при автовыдаче: ${err}`, 'r');
     }
@@ -173,24 +181,26 @@ async function getNewOrders(lastOrders) {
         log(`Начальные данные по заказам не переданы`);
         return;
     }
+
     let result = [];
     let orders = [];
 
     try {
         orders = await getOrders();
         if(!orders || !orders[0]) {
-            log(`Список продаж пуст`);
+            log(`Список продаж пуст.`, 'r');
             return;
         }
     
         const lastOrderId = lastOrders[0].id;
+        //log(`Last order id: ${lastOrderId}`);
         
         for(let i = 0; i < orders.length; i++) {
-            if(orders[i].id == lastOrderId) {
+            if(orders[i].id == lastOrderId || result.length >= 3) {
                 break;
             }
                 
-            result[i] = orders[i];
+            result.push(Object.assign(orders[i]));
         }
     } catch(err) {
         log(`Ошибка при получении новых заказов: ${err}`, 'r');
@@ -229,14 +239,14 @@ async function getOrders() {
             const status = order.querySelector(".tc-status").innerHTML;
             const price = Number(order.querySelector(".tc-price").firstChild.textContent);
 
-            result[i] = {
+            result.push({
                 id: id,
                 name: name,
                 buyerId: buyerId,
                 buyerName: buyerName,
                 status: status,
                 price: price
-            }
+            });
         }
 
         return result;
