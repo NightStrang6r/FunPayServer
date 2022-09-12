@@ -47,7 +47,7 @@ async function autoResponse() {
                 }
 
                 log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}:`);
-                let issueResult = await issueGood('', goodName, chat.node);
+                let issueResult = await issueGood(chat.node, chat.userName, goodName, 'node');
 
                 if(!issueResult) {
                     await sendMessage(chat.node, `Товара "${goodName}" нет в списке автовыдачи`);
@@ -92,7 +92,7 @@ async function getMessages(senderId) {
 }
 
 async function getLastMessageId(senderId) {
-    let lastMessageId = 1000000000;
+    let lastMessageId = -1;
     try {
         let chat = await getMessages(senderId);
         if(!chat) return lastMessageId;
@@ -128,10 +128,12 @@ async function sendMessage(node, message, customNode = false) {
                 "x-requested-with": "XMLHttpRequest"
             };
 
-            let lastMessageId = 1000000000;
             if(customNode) {
-                lastMessageId = await getLastMessageId(node);
-                node = `users-${global.appData.id}-${node}`;
+                if(node > global.appData.id) {
+                    node = `users-${global.appData.id}-${node}`;
+                } else {
+                    node = `users-${node}-${global.appData.id}`;
+                }
             }
 
             let reqMessage = message;
@@ -143,7 +145,7 @@ async function sendMessage(node, message, customNode = false) {
                 "action": "chat_message",
                 "data": {
                     "node": node,
-                    "last_message": lastMessageId,
+                    "last_message": -1,
                     "content": reqMessage
                 }
             };

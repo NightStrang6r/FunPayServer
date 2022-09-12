@@ -1,6 +1,6 @@
 {
   "name": "funpayserver",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "CLI app for auto-managing your FunPay account",
   "main": "src/index.js",
   "dependencies": {
@@ -11,7 +11,9 @@
     "inquirer": "^9.1.0",
     "jsdom": "^19.0.0",
     "node-fetch": "^3.2.1",
-    "project-version": "^2.0.0"
+    "project-version": "^2.0.0",
+    "telegraf": "^4.9.1",
+    "telegram-keyboard": "^2.3.2"
   },
   "type": "module",
   "scripts": {

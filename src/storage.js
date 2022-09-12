@@ -47,6 +47,9 @@ async function loadSettings() {
 
             settings = {
                 token: answers.token,
+                telegramBot: answers.telegramBot,
+                telegramToken: answers.telegramToken,
+                telegramUserName: '',
                 alwaysOnline: answers.alwaysOnline,
                 lotsRaise: answers.lotsRaise,
                 goodsStateCheck: answers.goodsStateCheck, 
@@ -124,10 +127,29 @@ function checkToken(token) {
     return true;
 }
 
+function checkTelegramToken(token) {
+    if(!token || token.length != 46) return false;
+    return true;
+}
+
 function getConst(name) {
     switch (name) {
         case 'api': return 'https://funpay.com';
+        case 'autoIssueFilePath': return `${_dirname}/../${dataFolder}/autoIssueGoods.json`;
     }
+}
+
+function setConst(name, value) {
+    switch (name) {
+        case 'telegramUserName': 
+            global.settings.telegramUserName = value;
+            fs.writeFileSync(`${_dirname}/../settings.json`, JSON.stringify(global.settings, null, 4)); 
+            break;
+    }
+}
+
+async function loadAutoIssueFile() {
+    return await fs.readFile(`${_dirname}/../data/autoIssueGoods.json`, 'utf8');
 }
 
 async function logToFile(msg) {
@@ -154,7 +176,6 @@ async function askSettings() {
         type: 'input',
         message: `Введите golden_key. Его можно получить из cookie с сайта FunPay при помощи расширения EditThisCookie:`,
         validate: function (input) {
-            // Declare function as asynchronous, and save the done callback
             const done = this.async();
         
             if (!checkToken(input)) {
@@ -163,10 +184,8 @@ async function askSettings() {
             }
 
             done(null, true);
-          }
+        }
     });
-
-    console.log(`${c.green('Отлично! Токен принят.')}`);
 
     const question2 = await inq.prompt({
         name: 'autoSettings',
@@ -175,10 +194,14 @@ async function askSettings() {
         choices: ['Оставить по умолчанию', 'Настроить']
     });
 
+    let telegramToken = '';
+
     if(question2.autoSettings == 'Оставить по умолчанию') {
         console.log();
         return {
             token: question1.golden_key,
+            telegramBot: false,
+            telegramToken: telegramToken,
             alwaysOnline: true,
             lotsRaise: true,
             goodsStateCheck: true,
@@ -187,12 +210,40 @@ async function askSettings() {
         }
     }
 
+    const question3 = await inq.prompt({
+        name: 'telegramBot',
+        type: 'list',
+        message: `Включить управление программой через телеграм бота (понадобится токен бота)?`,
+        choices: ['Да', 'Нет']
+    });
+    
+    if(question3.telegramBot == 'Да') {
+        const question4 = await inq.prompt({
+            name: 'telegramToken',
+            type: 'input',
+            message: `Введите токен Telegram бота, который вы получили от BotFather:`,
+            validate: function (input) {
+                const done = this.async();
+            
+                if (!checkTelegramToken(input)) {
+                    done('Невалидный токен.');
+                    return;
+                }
+    
+                done(null, true);
+            }
+        });
+
+        telegramToken = question4.telegramToken;
+    }
+
     const answers = await inq.prompt([{
         name: 'alwaysOnline',
         type: 'list',
         message: `Включить функцию вечного онлайна?`,
         choices: ['Да', 'Нет']
-    },{
+    },
+    {
         name: 'lotsRaise',
         type: 'list',
         message: `Включить функцию автоматического поднятия предложений?`,
@@ -219,15 +270,17 @@ async function askSettings() {
 
     const askSettings = {
         token: question1.golden_key,
+        telegramBot: (question3.telegramBot == 'Да') ? true : false,
+        telegramToken: telegramToken,
         alwaysOnline: (answers.alwaysOnline == 'Да') ? true : false,
         lotsRaise: (answers.lotsRaise == 'Да') ? true : false,
-        goodsStateCheck: (answers.goodsStateCheck == 'Да') ? true : false, 
-        autoIssue: (answers.autoIssue == 'Да') ? true : false, 
-        autoResponse: (answers.autoResponse == 'Да') ? true : false, 
+        goodsStateCheck: (answers.goodsStateCheck == 'Да') ? true : false,
+        autoIssue: (answers.autoIssue == 'Да') ? true : false,
+        autoResponse: (answers.autoResponse == 'Да') ? true : false
     }
 
     console.log();
     return askSettings;
 }
 
-export { updateFile, initStorage, load, loadSettings, logToFile, getConst };
+export { updateFile, initStorage, load, loadSettings, logToFile, getConst, setConst, loadAutoIssueFile };

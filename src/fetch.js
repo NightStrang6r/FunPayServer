@@ -55,6 +55,7 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
     
         return res;
     } catch (err) {
-        log(`Error while fetch: ${err}`);
+        log(`Ошибка при запросе (нет доступа к интернету / funpay): ${err}`);
+        //return await fetch_(url, options, delay + 200, retries - 5);
     }
 }

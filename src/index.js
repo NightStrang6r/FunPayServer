@@ -9,10 +9,13 @@ import { updateCategoriesData } from './categories.js';
 import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
 
 import Runner from './runner.js';
+import TelegramBot from './telegram.js';
 
 import { enableAutoResponse, autoResponse } from './chat.js';
 import { checkForNewOrders, enableAutoIssue } from './sales.js';
 import { checkGoodsState, enableGoodsStateCheck } from './activity.js';
+
+global.startTime = new Date().getTime();
 
 // UncaughtException Handler
 process.on('uncaughtException', (e) => {
@@ -78,6 +81,12 @@ enableUserDataUpdate(300 * 1000);
 // Start runner loop
 if(settings.alwaysOnline == true || settings.autoIssue == true || settings.autoResponse == true || settings.goodsStateCheck == true) {
     await runner.start();
+}
+
+// Start telegram bot
+if(settings.telegramBot == true) {
+    const bot = new TelegramBot(settings.telegramToken);
+    bot.run();
 }
 
 // Callbacks

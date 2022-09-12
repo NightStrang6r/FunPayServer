@@ -1,8 +1,6 @@
 import { log } from './log.js';
 import { getConst } from './storage.js';
 import { getRandomTag } from './activity.js';
-import { load } from './storage.js';
-import { parseDOM } from './DOMParser.js';
 import fetch from './fetch.js';
 
 const config = global.settings;
@@ -15,11 +13,14 @@ class Runner {
         this.lastMessages = [];
         this.lastMessagesCount = 0;
         this.lastOrdersCount = 0;
+
+        this.ordersTag = getRandomTag();
+        this.messagesTag = getRandomTag();
     }
 
     start() {
         setInterval(() => this.loop(), 6000);
-        log('Обработка событий запущена.', 'g');
+        //log('Обработка событий запущена.', 'g');
     }
 
     async loop() {
@@ -37,14 +38,14 @@ class Runner {
             const orders_counters = {
                 "type": "orders_counters",
                 "id": `${appData.id}`,
-                "tag": `${getRandomTag()}`,
+                "tag": `${this.ordersTag}`,
                 "data": false
             };
     
             const chat_bookmarks =  {
                 "type": "chat_bookmarks",
                 "id": `${appData.id}`,
-                "tag": `${getRandomTag()}`,
+                "tag": `${this.messagesTag}`,
                 "data": false
             };
     
@@ -71,57 +72,17 @@ class Runner {
     
             for(let i = 0; i < resObjects.length; i++) {
                 if(resObjects[i].type == "orders_counters") {
-                    this.checkForNewOrders(resObjects[i].data);
+                    this.ordersTag = resObjects[i].tag;
+                    this.newOrderCallback();
                 }
     
                 if(resObjects[i].type == "chat_bookmarks") {
-                    this.checkForNewMessages(resObjects[i].data);
+                    this.messagesTag = resObjects[i].tag;
+                    this.newMessageCallback();
                 }
             }
         } catch (err) {
             log(`Ошибка при обработке событий: ${err}`, 'e');
-        }
-    }
-
-    checkForNewOrders(object) {
-        if(!object) return;
-        const seller = object.seller;
-
-        if(seller != this.lastOrdersCount) {
-            this.lastOrdersCount = seller;
-            this.newOrderCallback();
-        }
-    }
-
-    checkForNewMessages(object) {
-        if(!object) return;
-        const counter = object.counter;
-        
-        if(counter != this.lastMessagesCount) {
-            this.lastMessagesCount = counter;
-            this.newMessageCallback();
-            return;
-        }
-
-        const html = object.html;
-        const doc = parseDOM(html);
-        const chats = doc.querySelectorAll(".contact-item");
-
-        let messages = [];
-    
-        for(let i = 0; i < chats.length; i++) {
-            const chat = chats[i];
-            
-            let message = chat.querySelector('.contact-item-message').innerHTML;
-            messages.push(message);
-        }
-
-        for(let i = 0; i < messages.length; i++) {
-            if(messages[i] != this.lastMessages[i]) {
-                this.lastMessages = messages.slice();
-                this.newMessageCallback();
-                return;
-            }
         }
     }
 

@@ -43,7 +43,7 @@ async function checkForNewOrders() {
             }
     
             log(`Новый заказ ${c.yellowBright(order.id)} от покупателя ${c.yellowBright(order.buyerName)} на сумму ${c.yellowBright(order.price)} ₽.`);
-            await issueGood(order.buyerName, order.name);
+            await issueGood(order.buyerId, order.buyerName, order.name, 'id');
         }
         
         backupOrders = clone(orders.backupOrders);
@@ -52,7 +52,7 @@ async function checkForNewOrders() {
     }
 }
 
-async function issueGood(buyerName, goodName, chatNode = false) {
+async function issueGood(buyerIdOrNode, buyerName, goodName, type = 'id') {
     let result = false;
 
     try {
@@ -72,13 +72,11 @@ async function issueGood(buyerName, goodName, chatNode = false) {
                     for(let j = 0; j < goods[i].nodes.length; j++) {
                         const node = goods[i].nodes[j];
     
-                        if(node.sold == false) {
-                            goods[i].nodes[j].sold = true;
-                            await updateFile(goods, goodsfilePath);
-                            message = node.message;
-                            notInStock = false;
-                            break;
-                        }
+                        goods[i].nodes.shift();
+                        await updateFile(goods, goodsfilePath);
+                        message = node;
+                        notInStock = false;
+                        break;
                     }
 
                     if(notInStock) {
@@ -90,16 +88,14 @@ async function issueGood(buyerName, goodName, chatNode = false) {
         }
 
         if(message != "") {
-            let node;
+            let node = buyerIdOrNode;
+            let customNode = false;
 
-            if(!chatNode) {
-                node = await getNodeByUserName(buyerName);
-            } else {
-                node = chatNode;
-                buyerName = chatNode;
+            if(type == 'id') {
+                customNode = true;
             }
             
-            result = await sendMessage(node, message);
+            result = await sendMessage(node, message, customNode);
             
             if(result) {
                 log(`Товар "${c.yellowBright(goodName)}" выдан покупателю ${c.yellowBright(buyerName)} с сообщением:`);
@@ -188,19 +184,24 @@ async function getNewOrders(lastOrders) {
     try {
         orders = await getOrders();
         if(!orders || !orders[0]) {
-            log(`Список продаж пуст.`, 'r');
+            log(`Ошибка получения новых заказов: список заказов пуст.`, 'r');
             return;
         }
-    
-        const lastOrderId = lastOrders[0].id;
-        //log(`Last order id: ${lastOrderId}`);
-        
+
         for(let i = 0; i < orders.length; i++) {
-            if(orders[i].id == lastOrderId || result.length >= 3) {
-                break;
+            if(result.length >= 3) break;
+            let contains = false;
+
+            for(let j = 0; j < lastOrders.length; j++) {
+                if(orders[i].id == lastOrders[j].id) {
+                    contains = true;
+                    break;
+                }
             }
-                
-            result.push(Object.assign(orders[i]));
+
+            if(contains == false) {
+                result.push(Object.assign(orders[i]));
+            }
         }
     } catch(err) {
         log(`Ошибка при получении новых заказов: ${err}`, 'r');
