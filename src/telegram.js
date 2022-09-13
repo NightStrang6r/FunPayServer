@@ -190,16 +190,28 @@ class TelegramBot {
     }
 
     async editAutoIssue(ctx) {
-        const goods = await load('data/autoIssueGoods.json');
-        if(!goods) return;
-        let goodsStr = '';
+        try {
+            const goods = await load('data/autoIssueGoods.json');
+            let goodsStr = '';
 
-        for(let i = 0; i < goods.length; i++) {
-            goodsStr += `[${i + 1}] ${goods[i].name}\n`;
+            let msg = `📄 <b>Список товаров</b> 📄`;
+            await ctx.replyWithHTML(msg, this.editGoodsKeyboard.reply());
+    
+            for(let i = 0; i < goods.length; i++) {
+                goodsStr += `[${i + 1}] ${goods[i].name}\n`;
+    
+                if(goodsStr.length > 3000) {
+                    await ctx.replyWithHTML(goodsStr, this.editGoodsKeyboard.reply());
+                    goodsStr = '';
+                }
+
+                if(i == (goods.length - 1)) {
+                    await ctx.replyWithHTML(goodsStr, this.editGoodsKeyboard.reply());
+                }
+            }
+        } catch (err) {
+            log(`Ошибка при выдаче списка товаров: ${err}`, 'r');
         }
-
-        let msg = `📄 <b>Список товаров</b> 📄\n\n${goodsStr}`;
-        ctx.replyWithHTML(msg, this.editGoodsKeyboard.reply());
     }
 
     getInfo(ctx) {

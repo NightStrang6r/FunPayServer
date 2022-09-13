@@ -34,7 +34,6 @@ async function raiseLotsIfTime(categories) {
             let res = await raiseLot(cat.game_id, cat.node_id);
 
             if(!res.success) {
-                error = true;
                 log(`Не удалось поднять предложение ${cat.name}: ${res.msg}`);
                 cat.time = getNewTiming();
                 continue;
