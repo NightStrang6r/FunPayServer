@@ -4,3 +4,5 @@ datamine
 settings.json
 build
 build.bat
+dist
+build.js

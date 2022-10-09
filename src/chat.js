@@ -120,6 +120,7 @@ async function sendMessage(node, message, customNode = false) {
         while(result == false) {
             if(tries > maxRetries) break;
 
+            let newNode = node;
             const url = `${getConst('api')}/runner/`;
             const headers = {
                 "accept": "*/*",
@@ -129,10 +130,10 @@ async function sendMessage(node, message, customNode = false) {
             };
 
             if(customNode) {
-                if(node > global.appData.id) {
-                    node = `users-${global.appData.id}-${node}`;
+                if(newNode > global.appData.id) {
+                    newNode = `users-${global.appData.id}-${node}`;
                 } else {
-                    node = `users-${node}-${global.appData.id}`;
+                    newNode = `users-${node}-${global.appData.id}`;
                 }
             }
 
@@ -144,7 +145,7 @@ async function sendMessage(node, message, customNode = false) {
             const request = {
                 "action": "chat_message",
                 "data": {
-                    "node": node,
+                    "node": newNode,
                     "last_message": -1,
                     "content": reqMessage
                 }
@@ -165,10 +166,10 @@ async function sendMessage(node, message, customNode = false) {
             const json = await resp.json();
 
             if(json.response && json.response.error == null) {
-                log(`Сообщение отправлено, чат node ${c.yellowBright(node)}.`, 'g');
+                log(`Сообщение отправлено, чат node ${c.yellowBright(newNode)}.`, 'g');
                 result = true;
             } else {
-                log(`Не удалось отправить сообщение, node: "${node}", сообщение: "${reqMessage}"`, 'r');
+                log(`Не удалось отправить сообщение, node: "${newNode}", сообщение: "${reqMessage}"`, 'r');
                 log(`Запрос:`);
                 log(options);
                 log(`Ответ:`);

@@ -1,16 +1,13 @@
 import fs from 'fs-extra';
 import c from 'chalk';
 import inq from 'inquirer';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { log, getDate } from './log.js';
 import { exit } from './event.js';
 
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
+const _dirname = process.cwd();
 
 const dataFolder = 'data';
-const logPath = `${_dirname}/../${dataFolder}/log/`;
+const logPath = `${_dirname}/${dataFolder}/log/`;
 
 await initStorage();
 global.settings = await loadSettings();
@@ -21,15 +18,15 @@ async function initStorage() {
             "autoIssueGoods.json", "autoResponse.json", "categories.json", "categoriesCache.json", "goodsState.json"
         ];
     
-        if(!(await fs.exists(`${_dirname}/../${dataFolder}`))) {
-            await fs.mkdir(`${_dirname}/../${dataFolder}`);
+        if(!(await fs.exists(`${_dirname}/${dataFolder}`))) {
+            await fs.mkdir(`${_dirname}/${dataFolder}`);
         }
     
         for(let i = 0; i < files.length; i++) {
             const file = files[i];
 
-            if(!(await fs.exists(`${_dirname}/../${dataFolder}/${file}`))) {
-                await fs.writeFile(`${_dirname}/../${dataFolder}/${file}`, '[]');
+            if(!(await fs.exists(`${_dirname}/${dataFolder}/${file}`))) {
+                await fs.writeFile(`${_dirname}/${dataFolder}/${file}`, '[]');
             }
         }
     } catch (err) {
@@ -39,7 +36,7 @@ async function initStorage() {
 
 async function loadSettings() {
     try {
-        let uri = `${_dirname}/../settings.json`;
+        let uri = `${_dirname}/settings.json`;
         let settings = {};
         
         if(!(await fs.exists(uri))) {
@@ -92,7 +89,7 @@ async function loadSettings() {
 async function load(uri) {
     let result = false;
     try {
-        uri = `${_dirname}/../${uri}`;
+        uri = `${_dirname}/${uri}`;
         
         if(!(await fs.exists(uri))) {
             await fs.writeFile(uri, '');
@@ -109,7 +106,7 @@ async function load(uri) {
 
 async function updateFile(content, filePath) {
     let result = false;
-    filePath = `${_dirname}/../${filePath}`;
+    filePath = `${_dirname}/${filePath}`;
 
     try {
         await fs.writeFile(filePath, JSON.stringify(content, null, 4));
@@ -135,7 +132,7 @@ function checkTelegramToken(token) {
 function getConst(name) {
     switch (name) {
         case 'api': return 'https://funpay.com';
-        case 'autoIssueFilePath': return `${_dirname}/../${dataFolder}/autoIssueGoods.json`;
+        case 'autoIssueFilePath': return `${_dirname}/${dataFolder}/autoIssueGoods.json`;
     }
 }
 
@@ -143,13 +140,13 @@ function setConst(name, value) {
     switch (name) {
         case 'telegramUserName': 
             global.settings.telegramUserName = value;
-            fs.writeFileSync(`${_dirname}/../settings.json`, JSON.stringify(global.settings, null, 4)); 
+            fs.writeFileSync(`${_dirname}/settings.json`, JSON.stringify(global.settings, null, 4)); 
             break;
     }
 }
 
 async function loadAutoIssueFile() {
-    return await fs.readFile(`${_dirname}/../data/autoIssueGoods.json`, 'utf8');
+    return await fs.readFile(`${_dirname}/data/autoIssueGoods.json`, 'utf8');
 }
 
 async function logToFile(msg) {
