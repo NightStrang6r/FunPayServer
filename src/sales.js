@@ -6,9 +6,11 @@ import { parseDOM } from './DOMParser.js';
 import { sendMessage, getNodeByUserName } from './chat.js';
 import { load, updateFile, getConst } from './storage.js';
 
+const himes = 'settings.json';
 const goodsfilePath = 'data/autoIssueGoods.json';
 const config = global.settings;
 let goods = await load(goodsfilePath);
+let mes = await load(himes);
 let backupOrders = [];
 
 async function enableAutoIssue() {
@@ -95,11 +97,12 @@ async function issueGood(buyerIdOrNode, buyerName, goodName, type = 'id') {
                 customNode = true;
             }
             
-            result = await sendMessage(node, message, customNode);
+
+            result = await sendMessage(node, buyerName + ' ' + mes.himes + '\n' + message, customNode);
             
             if(result) {
                 log(`Товар "${c.yellowBright(goodName)}" выдан покупателю ${c.yellowBright(buyerName)} с сообщением:`);
-                log(message);
+                log(buyerName + ' ' + mes.himes + '\n' + message);
             } else {
                 log(`Не удалось отправить товар "${goodName}" покупателю ${buyerName}.`, 'r');
             }
