@@ -193,6 +193,4 @@
 
 Вы также можете поддержать разработчика материально, чтобы ускорить выход будущих обновлений:
 
-- [Monobank](https://send.monobank.ua/jar/7fiVkcrWYv)
-- [DonationAlerts](https://www.donationalerts.com/r/nightstranger)
-- [ЮMoney](https://yoomoney.ru/to/4100115656349483)
+- [ЮMoney](https://yoomoney.ru/to/410011291432618)
