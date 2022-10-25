@@ -42,13 +42,6 @@ async function countTradeProfit() {
             const doc = parseDOM(body);
             const items = doc.querySelectorAll(".tc-item");
             const order = items[0].querySelector(".tc-order").innerHTML;
-            const continueEl = doc.querySelector(".dyn-table-form");
-
-            if(continueEl == null) {
-                break;
-            }
-
-            continueId = continueEl.firstElementChild.value;
 
             items.forEach(item => {
                 const status = item.querySelector(".tc-status").innerHTML;
@@ -61,6 +54,13 @@ async function countTradeProfit() {
                 }
             });
             log(`Продажи: ${ordersCount}. Заработок: ${result.toFixed(2)} ₽. Средний чек: ${(result / ordersCount).toFixed(2)} ₽.`);
+
+            const continueEl = doc.querySelector(".dyn-table-form");
+            if (continueEl == null) {
+                break;
+            }
+
+            continueId = continueEl.firstElementChild.value;
         }
     } catch (err) {
         log(`Ошибка при подсчёте профита: ${err}`, 'r');
