@@ -19,7 +19,14 @@ if(enableFileLog) {
     setInterval(logInterval, 30000);
 }
 
+setTerminalTitle('FunPayServer by NightStranger');
 printLogo();
+
+function setTerminalTitle(title) {
+    process.stdout.write(
+        String.fromCharCode(27) + "]0;" + title + String.fromCharCode(7)
+    );
+}
 
 function printLogo() {
     console.log(`\x1b[5m${logo}\x1b[0m`);

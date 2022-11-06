@@ -26,8 +26,7 @@ async function raiseLotsIfTime(categories) {
     try {    
         for(let i = 0; i < categories.length; i++) {
             const cat = categories[i];
-            const date = new Date();
-            const now = date.getTime();
+            const now = Date.now();
     
             if(now < cat.time) continue;
                 
@@ -144,8 +143,7 @@ async function raiseLot(game_id, node_id) {
 }
 
 function getNewTiming(msg) {
-    const date = new Date();
-    const now = date.getTime();
+    const now = Date.now();
 
     if(!msg) return now + 60000; // 1 минута
     if(typeof msg == 'number') return now + msg;

@@ -87,6 +87,15 @@ async function getUserData() {
         const doc = parseDOM(body);
         const appData = JSON.parse(doc.querySelector("body").dataset.appData);
         const userName = doc.querySelector(".user-link-name").innerHTML;
+        const balanceEl = doc.querySelector(".badge-balance");
+        const salesEl = doc.querySelector(".badge-trade");
+        const timestamp = Date.now();
+
+        let balance = 0;
+        let sales = 0;
+
+        if(balanceEl && balanceEl != null) balance = balanceEl.innerHTML;
+        if(salesEl && salesEl != null) sales = salesEl.innerHTML;
 
         let setCookie = "";
         resp.headers.forEach((val, key) => {
@@ -103,10 +112,11 @@ async function getUserData() {
                 id: appData.userId,
                 csrfToken: appData["csrf-token"],
                 sessid: PHPSESSID,
-                userName: userName
+                userName: userName,
+                balance: balance,
+                sales: sales,
+                lastUpdate: timestamp
             };
-            //log('Данные обновлены:', 'g');
-            //log(result);
             
             global.appData = result;
         } else {

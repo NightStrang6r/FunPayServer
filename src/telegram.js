@@ -175,9 +175,35 @@ class TelegramBot {
     }
 
     async replyStatus(ctx) {
-        const time = new Date().getTime();
-        const difference = time - global.startTime;
-        const workTime = new Date(difference).toISOString().slice(11, 19);
+        const time = Date.now();
+        const workTimeDiff = time - global.startTime;
+        const lastUpdateTimeDiff = time - global.appData.lastUpdate;
+
+        function declensionNum(num, words) {
+            return words[(num % 100 > 4 && num % 100 < 20) ? 2 : [2, 0, 1, 1, 1, 2][(num % 10 < 5) ? num % 10 : 5]];
+        }
+
+        function msToTime(ms) {
+            let days = ms > 0 ? Math.floor(ms / 1000 / 60 / 60 / 24) : 0;
+            let hours = ms > 0 ? Math.floor(ms / 1000 / 60 / 60) % 24 : 0;
+            let minutes = ms > 0 ? Math.floor(ms / 1000 / 60) % 60 : 0;
+            let seconds = ms > 0 ? Math.floor(ms / 1000) % 60 : 0;
+            days = ms < 10 ? '0' + days : days;
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            const daysTitle = declensionNum(days, ['день', 'дня', 'дней']);
+            const hoursTitle = declensionNum(hours, ['час', 'часа', 'часов']);
+            const minutesTitle = declensionNum(minutes, ['минута', 'минуты', 'минут']);
+            const secondsTitle = declensionNum(seconds, ['секунда', 'секунды', 'секунд']);
+            return {days: days, hours: hours, minutes: minutes, seconds: seconds, daysTitle: daysTitle, hoursTitle: hoursTitle, minutesTitle: minutesTitle, secondsTitle: secondsTitle};
+        }
+
+        const workTimeArr = msToTime(workTimeDiff);
+        const workTime = `${workTimeArr.days} ${workTimeArr.daysTitle} ${workTimeArr.hours} ${workTimeArr.hoursTitle} ${workTimeArr.minutes} ${workTimeArr.minutesTitle} ${workTimeArr.seconds} ${workTimeArr.secondsTitle}`;
+
+        const lastUpdateTimeArr = msToTime(lastUpdateTimeDiff);
+        const lastUpdateTime = `${lastUpdateTimeArr.minutes} ${lastUpdateTimeArr.minutesTitle} ${lastUpdateTimeArr.seconds} ${lastUpdateTimeArr.secondsTitle}`;
 
         const autoIssue = (global.settings.autoIssue) ? 'Вкл' : 'Выкл';
         const alwaysOnline = (global.settings.alwaysOnline) ? 'Вкл' : 'Выкл';
@@ -185,8 +211,10 @@ class TelegramBot {
         const goodsStateCheck = (global.settings.goodsStateCheck) ? 'Вкл' : 'Выкл';
         const autoResponse = (global.settings.autoResponse) ? 'Вкл' : 'Выкл';
 
-        const msg = `🔥 <b>Статус</b> 🔥\n\n🔑 Аккаунт: <code>${global.appData.userName}</code>\n🕒 Время работы: <code>${workTime}</code>\n⏲ Всегда онлайн: <code>${alwaysOnline}</code>\n👾 Автоответ: <code>${autoResponse}</code>\n🚀 Автовыдача: <code>${autoIssue}</code>\n🏆 Автоподнятие предложений: <code>${lotsRaise}</code>\n🔨 Автовосстановление предложений: <code>${goodsStateCheck}</code>\n\n<i>${global.settings.telegramUserName}</i>`;
-        ctx.replyWithHTML(msg, this.mainKeyboard.reply());
+        const msg = `🔥 <b>Статус</b> 🔥\n\n🔑 Аккаунт: <code>${global.appData.userName}</code>\n💰 Баланс: <code>${global.appData.balance}</code>\n🛍️ Продажи: <code>${global.appData.sales}</code>\n♻️ Последнее обновление: <code>${lastUpdateTime} назад</code>\n\n🕒 Время работы: <code>${workTime}</code>\n⏲ Всегда онлайн: <code>${alwaysOnline}</code>\n👾 Автоответ: <code>${autoResponse}</code>\n🚀 Автовыдача: <code>${autoIssue}</code>\n🏆 Автоподнятие предложений: <code>${lotsRaise}</code>\n🔨 Автовосстановление предложений: <code>${goodsStateCheck}</code>\n\n<i><a href="https://t.me/fplite">FunPayServer</a></i>`;
+        const params = this.mainKeyboard.reply();
+        params.disable_web_page_preview = true;
+        ctx.replyWithHTML(msg, params);
     }
 
     async editAutoIssue(ctx) {

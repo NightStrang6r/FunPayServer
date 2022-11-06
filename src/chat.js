@@ -112,74 +112,68 @@ async function sendMessage(node, message, customNode = false) {
     if(!message || message == undefined || !node || node == undefined) return;
 
     let result = false;
-    let maxRetries = 6;
-    let tries = 1;
     let delay = 0;
 
     try {
-        while(result == false) {
-            if(tries > maxRetries) break;
+        let newNode = node;
+        const url = `${getConst('api')}/runner/`;
+        const headers = {
+            "accept": "*/*",
+            "cookie": `golden_key=${config.token}; PHPSESSID=${global.appData.sessid}`,
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "x-requested-with": "XMLHttpRequest"
+        };
 
-            let newNode = node;
-            const url = `${getConst('api')}/runner/`;
-            const headers = {
-                "accept": "*/*",
-                "cookie": `golden_key=${config.token}; PHPSESSID=${global.appData.sessid}`,
-                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "x-requested-with": "XMLHttpRequest"
-            };
-
-            if(customNode) {
-                if(newNode > global.appData.id) {
-                    newNode = `users-${global.appData.id}-${node}`;
-                } else {
-                    newNode = `users-${node}-${global.appData.id}`;
-                }
-            }
-
-            let reqMessage = message;
-            if(config.watermark && config.watermark != '') {
-                reqMessage = `${config.watermark}\n${message}`;
-            }
-
-            const request = {
-                "action": "chat_message",
-                "data": {
-                    "node": newNode,
-                    "last_message": -1,
-                    "content": reqMessage
-                }
-            };
-
-            const params = new URLSearchParams();
-            params.append('objects', '');
-            params.append('request', JSON.stringify(request));
-            params.append('csrf_token', global.appData.csrfToken);
-
-            const options = {
-                method: 'POST',
-                body: params,
-                headers: headers
-            };
-
-            const resp = await fetch(url, options, delay);
-            const json = await resp.json();
-
-            if(json.response && json.response.error == null) {
-                log(`Сообщение отправлено, чат node ${c.yellowBright(newNode)}.`, 'g');
-                result = true;
+        if(customNode) {
+            if(newNode > global.appData.id) {
+                newNode = `users-${global.appData.id}-${node}`;
             } else {
-                log(`Не удалось отправить сообщение, node: "${newNode}", сообщение: "${reqMessage}"`, 'r');
-                log(`Запрос:`);
-                log(options);
-                log(`Ответ:`);
-                log(json);
-                result = false;
+                newNode = `users-${node}-${global.appData.id}`;
             }
-
-            tries++;
-            delay += 10000;
         }
+
+        let reqMessage = message;
+        if(config.watermark && config.watermark != '') {
+            reqMessage = `${config.watermark}\n${message}`;
+        }
+
+        const request = {
+            "action": "chat_message",
+            "data": {
+                "node": newNode,
+                "last_message": -1,
+                "content": reqMessage
+            }
+        };
+
+        const params = new URLSearchParams();
+        params.append('objects', '');
+        params.append('request', JSON.stringify(request));
+        params.append('csrf_token', global.appData.csrfToken);
+
+        const options = {
+            method: 'POST',
+            body: params,
+            headers: headers
+        };
+
+        const resp = await fetch(url, options, delay);
+        const json = await resp.json();
+
+        if(json.response && json.response.error == null) {
+            log(`Сообщение отправлено, чат node ${c.yellowBright(newNode)}.`, 'g');
+            result = true;
+        } else {
+            log(`Не удалось отправить сообщение, node: "${newNode}", сообщение: "${reqMessage}"`, 'r');
+            log(`Запрос:`);
+            log(options);
+            log(`Ответ:`);
+            log(json);
+            result = false;
+        }
+
+        tries++;
+        delay += 10000;
     } catch (err) {
         log(`Ошибка при отправке сообщения: ${err}`, 'r');
     }

@@ -4,6 +4,7 @@ import { exit, sleep } from './event.js';
 import { log } from './log.js';
 
 const settings = global.settings;
+let retriesErrCounter = 0;
 let requestsDelay = 0;
 if(settings.requestsDelay) requestsDelay = settings.requestsDelay;
 
@@ -19,6 +20,10 @@ if(settings.proxy.useProxy == true) {
 export default async function fetch_(url, options, delay = 0, retries = 20) {
     try {
         let tries = 1;
+        if(retriesErrCounter > 5) {
+            log(`Превышен максимальный лимит безуспешных попыток запросов!`, 'r');
+            await exit();
+        }
 
         if(settings.proxy.useProxy == true) {
             if(!options) options = {};
@@ -41,6 +46,7 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
 
         while(!res.ok) {
             if(tries > retries) {
+                retriesErrCounter++;
                 log(`Превышено количество попыток запроса.`);
                 log(`Request:`);
                 log(options);
@@ -52,7 +58,8 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
             res = await fetch(url, options);
             tries++;
         }
-    
+
+        retriesErrCounter = 0;
         return res;
     } catch (err) {
         log(`Ошибка при запросе (нет доступа к интернету / funpay): ${err}`);

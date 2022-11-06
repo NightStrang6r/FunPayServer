@@ -15,7 +15,7 @@ import { enableAutoResponse, autoResponse } from './chat.js';
 import { checkForNewOrders, enableAutoIssue } from './sales.js';
 import { checkGoodsState, enableGoodsStateCheck } from './activity.js';
 
-global.startTime = new Date().getTime();
+global.startTime = Date.now();
 
 // UncaughtException Handler
 process.on('uncaughtException', (e) => {
