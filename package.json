@@ -1,6 +1,6 @@
 {
   "name": "funpayserver",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "CLI app for auto-managing your FunPay account",
   "main": "src/index.js",
   "dependencies": {
@@ -28,11 +28,5 @@
   "bugs": {
     "url": "https://github.com/NightStrang6r/FunPayServer/issues"
   },
-  "homepage": "https://github.com/NightStrang6r/FunPayServer#readme",
-  "devDependencies": {
-    "@esbuild-plugins/node-resolve": "^0.1.4",
-    "@hyrious/esbuild-plugin-commonjs": "^0.2.1",
-    "esbuild": "^0.15.10",
-    "esbuild-node-externals": "^1.5.0"
-  }
+  "homepage": "https://github.com/NightStrang6r/FunPayServer#readme"
 }

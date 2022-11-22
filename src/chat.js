@@ -29,11 +29,17 @@ async function autoResponse() {
     
             // Commands in file
             for(let i = 0; i < autoRespData.length; i++) {
-                if(chat.message == autoRespData[i].command) {
+                if(autoRespData[i].command && chat.message.toLowerCase() == autoRespData[i].command.toLowerCase()) {
                     log(`Команда: ${c.yellowBright(autoRespData[i].command)} для пользователя ${c.yellowBright(chat.userName)}.`);
                     await sendMessage(chat.node, autoRespData[i].response);
                     break;
                 }
+
+                /*if(autoRespData[i].word && chat.message.toLowerCase().includes(autoRespData[i].word.toLowerCase())) {
+                    log(`Ключевое слово: ${c.yellowBright(autoRespData[i].word)} для пользователя ${c.yellowBright(chat.userName)}.`);
+                    await sendMessage(chat.node, autoRespData[i].response);
+                    break;
+                }*/
             }
     
             // Custom commands
@@ -112,7 +118,6 @@ async function sendMessage(node, message, customNode = false) {
     if(!message || message == undefined || !node || node == undefined) return;
 
     let result = false;
-    let delay = 0;
 
     try {
         let newNode = node;
@@ -157,7 +162,7 @@ async function sendMessage(node, message, customNode = false) {
             headers: headers
         };
 
-        const resp = await fetch(url, options, delay);
+        const resp = await fetch(url, options);
         const json = await resp.json();
 
         if(json.response && json.response.error == null) {
@@ -171,9 +176,6 @@ async function sendMessage(node, message, customNode = false) {
             log(json);
             result = false;
         }
-
-        tries++;
-        delay += 10000;
     } catch (err) {
         log(`Ошибка при отправке сообщения: ${err}`, 'r');
     }
