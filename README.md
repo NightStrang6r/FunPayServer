@@ -214,11 +214,11 @@
 
 - Telegram - [FunPay Lite Bot - chat / support](https://t.me/fplite)
 
-- Discord - [Chat / Voice / Support](https://discord.gg/gEPnwzVD3H)
+- Discord - [Chat / Voice / Support](https://discord.gg/Y9tZYkgk3p)
 
 Более долгий ответ:
 
-- Lolz.Guru - https://lolz.guru/threads/4149637/
+- Lolz.Guru - https://https://zelenka.guru/threads/4149637/
 
 ## 🎉 Понравилось приложение?
 
