@@ -1,11 +1,13 @@
-import c from 'chalk';
-import clone from 'clone';
-import fetch from './fetch.js';
-import { log } from './log.js';
-import { parseDOM } from './DOMParser.js';
-import { sendMessage, getNodeByUserName } from './chat.js';
-import { load, updateFile, getConst } from './storage.js';
+// MODULES
+const c = global.chalk;
+const clone = global.clone;
+const fetch = global.fetch;
+const log = global.log;
+const parseDOM = global.DOMParser;
+const { sendMessage } = global.chat;
+const { load, updateFile, getConst } = global.storage;
 
+// CONSTANTS
 const goodsfilePath = 'data/autoIssueGoods.json';
 const config = global.settings;
 let goods = await load(goodsfilePath);
@@ -215,7 +217,7 @@ async function getOrders() {
     try {
         const url = `${getConst('api')}/orders/trade`;
         const headers = {
-            "cookie": `golden_key=${config.token}`,
+            "cookie": `golden_key=${config.golden_key}`,
             "x-requested-with": "XMLHttpRequest"
         };
 

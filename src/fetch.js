@@ -1,13 +1,14 @@
-import fetch from 'node-fetch';
-import proxy from 'https-proxy-agent';
-import { exit, sleep } from './event.js';
-import { log } from './log.js';
+// MODULES
+const fetch = global.node_fetch;
+const proxy = global.https_proxy_agent;
+const { exit, sleep } = global.helpers;
+const log = global.log;
 
+// CONSTANTS
 const settings = global.settings;
 let retriesErrCounter = 0;
-let requestsDelay = 0;
-if(settings.requestsDelay) requestsDelay = settings.requestsDelay;
 
+// PROXY
 if(settings.proxy.useProxy == true) {
     if(!settings.proxy.type || !settings.proxy.host) {
         log(`Неверные данные прокси!`, 'r');
@@ -17,6 +18,7 @@ if(settings.proxy.useProxy == true) {
     log(`Для обработки запросов используется ${settings.proxy.type} прокси: ${settings.proxy.host}`, 'g');
 }
 
+// FETCH FUNCTION
 export default async function fetch_(url, options, delay = 0, retries = 20) {
     try {
         let tries = 1;
@@ -25,8 +27,13 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
             await exit();
         }
 
+        // Adding user-agent
+        if(!options) options = {};
+        if(!options.headers) options.headers = {};
+        if(!options.headers['User-Agent']) options.headers['User-Agent'] = settings.userAgent;
+
+        // Adding proxy
         if(settings.proxy.useProxy == true) {
-            if(!options) options = {};
             let proxyString = '';
 
             if(settings.proxy.login || settings.proxy.pass) {
@@ -39,11 +46,13 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
             options.agent = agent;
         }
 
-        delay += requestsDelay;
+        // Adding delay
         await sleep(delay);
 
+        // Making request
         let res = await fetch(url, options);
 
+        // Retrying if necessary
         while(!res.ok) {
             if(tries > retries) {
                 retriesErrCounter++;

@@ -1,8 +1,8 @@
-import c from 'chalk';
-import { Telegraf } from 'telegraf';
-import { Keyboard } from 'telegram-keyboard';
-import { setConst, load, updateFile, getConst } from './storage.js';
-import { log } from './log.js';
+const c = global.chalk;
+const Telegraf = global.telegraf;
+const Keyboard = global.telegram_keyboard;
+const { setConst, load, updateFile, getConst } = global.storage;
+const log = global.log;
 
 class TelegramBot {
     constructor(token) {

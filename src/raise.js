@@ -1,9 +1,11 @@
-import c from 'chalk';
-import fetch from './fetch.js';
-import { log } from './log.js';
-import { sleep } from './event.js';
-import { load, loadSettings, getConst } from './storage.js';
+// MODULES
+const c = global.chalk;
+const fetch = global.fetch;
+const log = global.log;
+const { sleep } = global.helpers;
+const { load, loadSettings, getConst } = global.storage;
 
+// CONSTANTS
 const config = global.settings;
 
 async function enableLotsRaise() {
@@ -104,7 +106,7 @@ async function raiseLot(game_id, node_id) {
         const headers = {
             "accept": "*/*",
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "cookie": `locale=ru; golden_key=${config.token}`,
+            "cookie": `locale=ru; golden_key=${config.golden_key}`,
             "x-requested-with": "XMLHttpRequest"
         }
 

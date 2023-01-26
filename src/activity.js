@@ -1,10 +1,12 @@
-import c from 'chalk';
-import fetch from './fetch.js';
-import { getAllGoods, getActiveProducts } from './goods.js';
-import { parseDOM } from './DOMParser.js';
-import { log } from './log.js';
-import { load, getConst } from './storage.js';
+// MODULES
+const c = global.chalk;
+const fetch = global.fetch;
+const { getActiveProducts } = global.goods;
+const parseDOM = global.DOMParser;
+const log = global.log;
+const { load, getConst } = global.storage;
 
+// CONSTANTS
 const config = global.settings;
 let goodsState;
 
@@ -48,7 +50,7 @@ async function setState(state, offer_id, node_id) {
             "accept": "*/*",
             "content-type": "application/json",
             "x-requested-with": "XMLHttpRequest",
-            "cookie": `golden_key=${config.token}`
+            "cookie": `golden_key=${config.golden_key}`
         };
 
         const options = {
@@ -139,7 +141,7 @@ async function saveOffer(inputs, PHPSESSID) {
             "accept": "*/*",
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest",
-            "cookie": `golden_key=${config.token}; PHPSESSID=${PHPSESSID}`,
+            "cookie": `golden_key=${config.golden_key}; PHPSESSID=${PHPSESSID}`,
         };
         let body = ``;
 

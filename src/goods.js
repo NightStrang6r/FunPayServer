@@ -1,10 +1,12 @@
-import fetch from './fetch.js';
-import { headers } from './account.js';
-import { parseDOM } from './DOMParser.js';
-import { updateCategoriesData } from './categories.js';
-import { load, updateFile, getConst } from './storage.js';
-import { log } from './log.js';
+// MODULES
+const fetch = global.fetch;
+const { headers } = global.account;
+const parseDOM = global.DOMParser;
+const { updateCategoriesData } = global.categories;
+const { load, updateFile, getConst } = global.storage;
+const log = global.log;
 
+// FUNCTIONS
 async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`, 'c');
     const data = await getActiveProducts(global.appData.id);

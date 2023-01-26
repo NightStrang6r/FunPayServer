@@ -1,8 +1,10 @@
-import { log } from './log.js';
-import { getConst } from './storage.js';
-import { getRandomTag } from './activity.js';
-import fetch from './fetch.js';
+// MODULES
+const log = global.log;
+const { getConst } = global.storage;
+const { getRandomTag } = global.activity;;
+const fetch = global.fetch;
 
+// CONSTANTS
 const config = global.settings;
 
 class Runner {

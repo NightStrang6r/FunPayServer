@@ -1,8 +1,9 @@
-import fetch from './fetch.js';
-import { log } from './log.js';
-import { load, getConst, updateFile } from './storage.js';
-import { parseDOM } from './DOMParser.js';
-import { headers } from './account.js';
+// MODULES
+const fetch = global.fetch;
+const log = global.log;
+const { load, getConst, updateFile } = global.storage;
+const parseDOM = global.DOMParser;
+const { headers } = global.account;
 
 let categoriesCache = await load('data/categoriesCache.json');
 

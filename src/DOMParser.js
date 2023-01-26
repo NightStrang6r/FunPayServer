@@ -1,8 +1,8 @@
-import { JSDOM } from 'jsdom';
+const JSDOM = global.jsdom;
 
 function parseDOM(text) {
     const { document } = (new JSDOM(text)).window;
     return document;
 }
 
-export { parseDOM };
+export default parseDOM;

@@ -1,8 +1,7 @@
 node_modules
 data
-datamine
-settings.json
-build
-build.bat
+settings.txt
 dist
+assets
+build.bat
 build.js

@@ -1,11 +1,12 @@
-import fetch from './fetch.js';
-import c from 'chalk';
-import { log } from './log.js';
-import { parseDOM } from './DOMParser.js';
-import { load, getConst } from './storage.js';
-import { issueGood, getGood, addDeliveredName, searchOrdersByUserName } from './sales.js'
-import { getRandomTag } from './activity.js';
+// MODULES
+const fetch = global.fetch;
+const c = global.chalk;
+const log = global.log;
+const parseDOM = global.DOMParser;
+const { load, getConst } = global.storage;
+const { getRandomTag } = global.activity;
 
+// CONSTANTS
 const config = global.settings;
 const autoRespData = await load('data/autoResponse.json');
 
@@ -53,6 +54,7 @@ async function autoResponse() {
                 }
 
                 log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}:`);
+                const { issueGood } = global.sales;
                 let issueResult = await issueGood(chat.node, chat.userName, goodName, 'node');
 
                 if(!issueResult) {
@@ -80,7 +82,7 @@ async function getMessages(senderId) {
     try {
         const url = `${getConst('api')}/chat/history?node=users-${global.appData.id}-${senderId}&last_message=1000000000`;
         const headers = { 
-            "cookie": `golden_key=${config.token}`,
+            "cookie": `golden_key=${config.golden_key}`,
             "x-requested-with": "XMLHttpRequest"
         };
 
@@ -124,7 +126,7 @@ async function sendMessage(node, message, customNode = false) {
         const url = `${getConst('api')}/runner/`;
         const headers = {
             "accept": "*/*",
-            "cookie": `golden_key=${config.token}; PHPSESSID=${global.appData.sessid}`,
+            "cookie": `golden_key=${config.golden_key}; PHPSESSID=${global.appData.sessid}`,
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest"
         };
@@ -210,7 +212,7 @@ async function getChatBookmarks() {
         const url = `${getConst('api')}/runner/`;
         const headers = {
             "accept": "*/*",
-            "cookie": `golden_key=${config.token}; PHPSESSID=${global.appData.sessid}`,
+            "cookie": `golden_key=${config.golden_key}; PHPSESSID=${global.appData.sessid}`,
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest"
         };

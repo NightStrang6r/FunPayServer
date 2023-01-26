@@ -1,7 +1,9 @@
-import c from 'chalk';
-import ver from 'project-version';
-import { logToFile } from './storage.js';
+// MODULES
+const c = global.chalk;
+const ver = global.project_version;
+const fs = global.fs_extra;
 
+// CONSTANTS
 const logo = `
 █▀▀ █░░█ █▄░█ █▀▄ ▄▀▄ █░█ . ▄▀▀ █▀▀ █▀▄ █░░░█ █▀▀ █▀▄
 █▀▀ █░░█ █▀██ █▀░ █▄█ ▀█▀ . ░▀▄ █▀▀ █▀▄ ░█░█░ █▀▀ █▀▄
@@ -10,18 +12,14 @@ const logo = `
 
 const version = `v${ver}`;
 const by = 'By NightStranger\n';
-
 const enableFileLog = true;
-let logBuffer = [];
 
-if(enableFileLog) {
-    logBuffer[0] = "---NewLoad---";
-    setInterval(logInterval, 30000);
-}
-
+// START
+if(enableFileLog) logToFile('---------------New Load--------------');
 setTerminalTitle('FunPayServer by NightStranger');
 printLogo();
 
+// FUNCTIONS
 function setTerminalTitle(title) {
     process.stdout.write(
         String.fromCharCode(27) + "]0;" + title + String.fromCharCode(7)
@@ -32,9 +30,9 @@ function printLogo() {
     console.log(`\x1b[5m${logo}\x1b[0m`);
     console.log(c.cyan(version));
     console.log(c.magenta(by));
-    console.log(c.greenBright(`Telegram: https://t.me/fplite`));
-    console.log(c.greenBright(`Discord:  https://discord.gg/gEPnwzVD3H`));
-    console.log(c.greenBright(`Github:   https://github.com/NightStrang6r/FunPayServer\n`));
+    console.log(c.greenBright(` *Telegram: https://t.me/fplite`));
+    console.log(c.greenBright(` *Discord:  https://discord.gg/Y9tZYkgk3p`));
+    console.log(c.greenBright(` *Github:   https://github.com/NightStrang6r/FunPayServer\n`));
 }
 
 function log(msg, color = 'w') {
@@ -51,7 +49,7 @@ function log(msg, color = 'w') {
         case 'y': coloredMsg = c.yellow(msg); break;
         case 'r': coloredMsg = c.red(msg); break;
         default: coloredMsg = msg; break;
-    } 
+    }
 
     const logMsg = `${c.yellow('>')} ${c.cyan(dateString)} ${c.cyan(timeString)}: ${coloredMsg}`;
 
@@ -59,21 +57,13 @@ function log(msg, color = 'w') {
         console.log(logMsg);
 
         if(enableFileLog) 
-            logBuffer[logBuffer.length] = logText;
+            logToFile(logText);
     } else {
         console.log(msg);
 
         if(enableFileLog)
-            logBuffer[logBuffer.length] = JSON.stringify(msg);
+            logToFile(JSON.stringify(msg, null, 4));
     }
-}
-
-function logInterval() {
-    if(logBuffer.length <= 0) return;
-    
-    let msg = logBuffer.join('\n');
-    logToFile(msg);
-    logBuffer = [];
 }
 
 function getDate() {
@@ -107,4 +97,26 @@ function getDate() {
     }
 }
 
-export { log, getDate };
+async function logToFile(msg) {
+    try {
+        const _dirname = process.cwd();
+        const dataFolder = 'data';
+        const logPath = `${_dirname}/${dataFolder}/log/`;
+
+        if(!(await fs.exists(logPath))) {
+            await fs.mkdir(logPath);
+        }
+
+        const time = getDate();
+        const logFile = `${logPath}log-${time.day}-${time.month}-${time.year}.txt`;
+        if(!(await fs.exists(logFile))) {
+            await fs.writeFile(logFile, '');
+        }
+
+        await fs.appendFile(logFile, `${msg}\n`);
+    } catch(err) {
+        console.log(`Ошибка записи файла: ${err}`, 'r');
+    }
+}
+
+export default log;

@@ -1,27 +1,29 @@
-import { program } from 'commander';
-import ver from 'project-version';
-import { loadSettings } from './storage.js';
-import { log } from './log.js';
-import { exit } from './event.js';
-import { enableLotsRaise } from './raise.js';
-import { updateGoodsState } from './goods.js';
-import { updateCategoriesData } from './categories.js';
-import { getUserData, enableUserDataUpdate, countTradeProfit } from './account.js';
+await import('./modules.js');
 
-import Runner from './runner.js';
-import TelegramBot from './telegram.js';
+// MODULES
+const program = global.commander;
+const ver = global.project_version;
+const log = global.log;
+const { loadSettings } = global.storage;
+const { exit } = global.helpers;
+const { enableLotsRaise } = global.raise;
+const { updateGoodsState } = global.goods;
+const { updateCategoriesData } = global.categories;
+const { getUserData, enableUserDataUpdate, countTradeProfit } = global.account;
 
-import { enableAutoResponse, autoResponse } from './chat.js';
-import { checkForNewOrders, enableAutoIssue } from './sales.js';
-import { checkGoodsState, enableGoodsStateCheck } from './activity.js';
+const Runner = global.runner;
+const TelegramBot = global.telegram;
+
+const { enableAutoResponse, autoResponse } = global.chat;
+const { checkForNewOrders, enableAutoIssue } = global.sales;
+const { checkGoodsState, enableGoodsStateCheck } = global.activity;
 
 global.startTime = Date.now();
 
 // UncaughtException Handler
 process.on('uncaughtException', (e) => {
-    console.error('Ошибка: необработанное исключение... Программа будет закрыта.');
-    console.error(e.stack);
-    setTimeout(() => {process.exit(1)}, 120000);
+    log('Ошибка: необработанное исключение. Сообщите об этом разработчику.', 'r');
+    log(e.stack);
 });
 
 // Checking arguments

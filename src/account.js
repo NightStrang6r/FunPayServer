@@ -1,11 +1,13 @@
-import fetch from './fetch.js';
-import { log } from './log.js';
-import { exit } from './event.js';
-import { parseDOM } from './DOMParser.js';
-import { getConst } from './storage.js';
+// MODULES
+const fetch = global.fetch;
+const log = global.log;
+const { exit } = global.helpers;
+const parseDOM = global.DOMParser;
+const { getConst } = global.storage;
 
+// CONSTANTS
 const config = global.settings;
-const headers = { "cookie": `golden_key=${config.token};`};
+const headers = { "cookie": `golden_key=${config.golden_key};`};
 
 if(!global.appData || !global.appData.id) {
     global.appData = await getUserData();
@@ -86,6 +88,12 @@ async function getUserData() {
 
         const doc = parseDOM(body);
         const appData = JSON.parse(doc.querySelector("body").dataset.appData);
+
+        if(!doc.querySelector(".user-link-name")) {
+            log(`Неверный golden_key.`, 'r');
+            return false;
+        }
+
         const userName = doc.querySelector(".user-link-name").innerHTML;
         const balanceEl = doc.querySelector(".badge-balance");
         const salesEl = doc.querySelector(".badge-trade");
