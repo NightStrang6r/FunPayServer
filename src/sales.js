@@ -8,8 +8,8 @@ const { sendMessage } = global.chat;
 const { load, updateFile, getConst } = global.storage;
 
 // CONSTANTS
-const goodsfilePath = 'data/autoIssueGoods.json';
-const config = global.settings;
+const goodsfilePath = 'data/configs/delivery.json';
+const settings = global.settings;
 let goods = await load(goodsfilePath);
 let backupOrders = [];
 
@@ -42,6 +42,10 @@ async function checkForNewOrders() {
             if(!order) {
                 log('!order', 'c');
                 return;
+            }
+
+            if(global.telegramBot && settings.newOrderNotification) {
+                global.telegramBot.sendNewOrderNotification(order);
             }
     
             log(`Новый заказ ${c.yellowBright(order.id)} от покупателя ${c.yellowBright(order.buyerName)} на сумму ${c.yellowBright(order.price)} ₽.`);
@@ -217,7 +221,7 @@ async function getOrders() {
     try {
         const url = `${getConst('api')}/orders/trade`;
         const headers = {
-            "cookie": `golden_key=${config.golden_key}`,
+            "cookie": `golden_key=${settings.golden_key}`,
             "x-requested-with": "XMLHttpRequest"
         };
 
@@ -235,12 +239,13 @@ async function getOrders() {
         for(let i = 0; i < ordersEl.length; i++) {
             const order = ordersEl[i];
             const id = order.querySelector(".tc-order").innerHTML;
-            const name = order.querySelector(".order-desc").firstElementChild.innerHTML;
+            const name = order.querySelector(".order-desc").querySelector('div').innerHTML;
             const buyerName = order.querySelector(".media-user-name > span").innerHTML;
-            const buyerProfileLink = order.querySelector(".avatar-photo").dataset.href.split("/");
+            const buyerProfileLink = order.querySelector(".avatar-photo").getAttribute("data-href").split("/");
             const buyerId = buyerProfileLink[buyerProfileLink.length - 2];
             const status = order.querySelector(".tc-status").innerHTML;
             const price = Number(order.querySelector(".tc-price").firstChild.textContent);
+            const unit = order.querySelector(".tc-price").querySelector("span").innerHTML;
 
             result.push({
                 id: id,
@@ -248,7 +253,8 @@ async function getOrders() {
                 buyerId: buyerId,
                 buyerName: buyerName,
                 status: status,
-                price: price
+                price: price,
+                unit: unit
             });
         }
 

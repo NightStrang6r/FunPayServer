@@ -8,7 +8,17 @@ const { exit } = global.helpers;
 
 // CONSTANTS
 const _dirname = process.cwd();
+
 const dataFolder = 'data';
+const logsFolder = 'logs';
+const configFolder = 'configs';
+const otherFolder = 'other';
+
+const dataPath = `${_dirname}/${dataFolder}`;
+const logsPath = `${dataPath}/${logsFolder}`;
+const configPath = `${dataPath}/${configFolder}`;
+const otherPath = `${dataPath}/${otherFolder}`;
+
 const config = new ConfigParser();
 
 // START
@@ -18,19 +28,47 @@ global.settings = await loadSettings();
 // FUNCTIONS
 async function initStorage() {
     try {
-        const files = [
-            "autoIssueGoods.json", "autoResponse.json", "categories.json", "categoriesCache.json", "goodsState.json"
+        const configFiles = [
+            "delivery.json", 
+            "autoResponse.json"
+        ];
+
+        const otherFiles = [
+            "categories.json", 
+            "categoriesCache.json", 
+            "goodsState.json",
+            "telegram.txt"
         ];
     
-        if(!(await fs.exists(`${_dirname}/${dataFolder}`))) {
-            await fs.mkdir(`${_dirname}/${dataFolder}`);
+        if(!(await fs.exists(dataPath))) {
+            await fs.mkdir(dataPath);
+        }
+
+        if(!(await fs.exists(logsPath))) {
+            await fs.mkdir(logsPath);
+        }
+
+        if(!(await fs.exists(configPath))) {
+            await fs.mkdir(configPath);
+        }
+
+        if(!(await fs.exists(otherPath))) {
+            await fs.mkdir(otherPath);
         }
     
-        for(let i = 0; i < files.length; i++) {
-            const file = files[i];
+        for(let i = 0; i < configFiles.length; i++) {
+            const file = configFiles[i];
 
-            if(!(await fs.exists(`${_dirname}/${dataFolder}/${file}`))) {
-                await fs.writeFile(`${_dirname}/${dataFolder}/${file}`, '[]');
+            if(!(await fs.exists(`${configPath}/${file}`))) {
+                await fs.writeFile(`${configPath}/${file}`, '[]');
+            }
+        }
+
+        for(let i = 0; i < otherFiles.length; i++) {
+            const file = otherFiles[i];
+
+            if(!(await fs.exists(`${otherPath}/${file}`))) {
+                await fs.writeFile(`${otherPath}/${file}`, '[]');
             }
         }
     } catch (err) {
@@ -49,15 +87,19 @@ async function loadSettings() {
             settings = {
                 golden_key: answers.golden_key,
                 userAgent: answers.userAgent,
-                telegramBot: answers.telegramBot,
-                telegramToken: answers.telegramToken,
-                telegramUserName: '',
                 alwaysOnline: answers.alwaysOnline,
                 lotsRaise: answers.lotsRaise,
                 goodsStateCheck: answers.goodsStateCheck, 
                 autoIssue: answers.autoIssue, 
                 autoResponse: answers.autoResponse, 
                 autoIssueTestCommand: 0,
+                telegramBot: answers.telegramBot,
+                telegramToken: answers.telegramToken,
+                userName: '',
+                newMessageNotification: 0,
+                newOrderNotification: 0,
+                lotsRaiseNotification: 0,
+                deliveryNotification: 0,
                 watermark: "[ 🔥NightBot ]",
                 proxy: {
                     useProxy: 0,
@@ -92,15 +134,19 @@ function loadConfig() {
     let settings = {
         golden_key: config.get('FunPay', 'golden_key'),
         userAgent: config.get('FunPay', 'user_agent'),
-        telegramBot: config.get('Telegram', 'enabled'),
-        telegramToken: config.get('Telegram', 'token'),
-        telegramUserName: config.get('Telegram', 'userName'),
         alwaysOnline: config.get('FunPay', 'alwaysOnline'),
         lotsRaise: config.get('FunPay', 'lotsRaise'),
         goodsStateCheck: config.get('FunPay', 'goodsStateCheck'),
         autoIssue: config.get('FunPay', 'autoDelivery'),
         autoResponse: config.get('FunPay', 'autoResponse'),
         autoIssueTestCommand: config.get('FunPay', 'autoDeliveryTestCommand'),
+        telegramBot: config.get('Telegram', 'enabled'),
+        telegramToken: config.get('Telegram', 'token'),
+        userName: config.get('Telegram', 'userName'),
+        newMessageNotification: config.get('Telegram', 'newMessageNotification'),
+        newOrderNotification: config.get('Telegram', 'newOrderNotification'),
+        lotsRaiseNotification: config.get('Telegram', 'lotsRaiseNotification'),
+        deliveryNotification: config.get('Telegram', 'deliveryNotification'),
         watermark: "[ 🔥NightBot ]",
         proxy: {
             useProxy: config.get('Proxy', 'enabled'),
@@ -130,6 +176,10 @@ async function saveConfig(settings) {
     data = setValue(data, 'Telegram', 'enabled', settings.autoResponse)
     data = setValue(data, 'Telegram', 'token', settings.telegramToken);
     data = setValue(data, 'Telegram', 'userName', settings.telegramUserName);
+    data = setValue(data, 'Telegram', 'newMessageNotification', settings.newMessageNotification);
+    data = setValue(data, 'Telegram', 'newOrderNotification', settings.newOrderNotification);
+    data = setValue(data, 'Telegram', 'lotsRaiseNotification', settings.lotsRaiseNotification);
+    data = setValue(data, 'Telegram', 'deliveryNotification', settings.deliveryNotification);
     data = setValue(data, 'Proxy', 'enabled', settings.proxy.useProxy);
     data = setValue(data, 'Proxy', 'host', settings.proxy.host);
     data = setValue(data, 'Proxy', 'port', settings.proxy.port);
@@ -206,21 +256,26 @@ function checkTelegramToken(token) {
 function getConst(name) {
     switch (name) {
         case 'api': return 'https://funpay.com';
-        case 'autoIssueFilePath': return `${_dirname}/${dataFolder}/autoIssueGoods.json`;
+        case 'autoIssueFilePath': return `${dataPath}/configs/delivery.json`;
+        case 'chatId': 
+            if(!global.settings.chatId)  {
+                global.settings.chatId = fs.readFileSync(`${otherPath}/telegram.txt`, 'utf8');
+            }
+            return global.settings.chatId;
     }
 }
 
 function setConst(name, value) {
     switch (name) {
-        case 'telegramUserName': 
-            global.settings.telegramUserName = value;
-            fs.writeFileSync(`${_dirname}/settings.json`, JSON.stringify(global.settings, null, 4)); 
+        case 'chatId':
+            global.settings.chatId = value;
+            fs.writeFileSync(`${otherPath}/telegram.txt`, value.toString());
             break;
     }
 }
 
 async function loadAutoIssueFile() {
-    return await fs.readFile(`${_dirname}/data/autoIssueGoods.json`, 'utf8');
+    return await fs.readFile(`${_dirname}/data/configs/delivery.json`, 'utf8');
 }
 
 async function askSettings() {
@@ -311,7 +366,7 @@ async function askSettings() {
     {
         name: 'autoIssue',
         type: 'list',
-        message: `Включить функцию автовыдачи товаров (не забудьте потом её настроить в файле autoIssueGoods.json)?`,
+        message: `Включить функцию автовыдачи товаров (не забудьте потом её настроить в файле delivery.json)?`,
         choices: ['Да', 'Нет']
     },
     {

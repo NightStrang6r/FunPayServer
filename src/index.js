@@ -1,8 +1,6 @@
 await import('./modules.js');
 
 // MODULES
-const program = global.commander;
-const ver = global.project_version;
 const log = global.log;
 const { loadSettings } = global.storage;
 const { exit } = global.helpers;
@@ -25,21 +23,6 @@ process.on('uncaughtException', (e) => {
     log('Ошибка: необработанное исключение. Сообщите об этом разработчику.', 'r');
     log(e.stack);
 });
-
-// Checking arguments
-program
-  .version(ver, '-v, --version')
-  .usage('[OPTIONS]...')
-  .option('-c, --countProfit', 'count your trade profit and exit')
-  .parse(process.argv);
-
-const options = program.opts();
-if(options && options.countProfit) {
-    log('Считаем заработок по продажам...', 'g');
-    await countTradeProfit();
-    log('Подсчёт окончен.', 'g');
-    await exit();
-}
 
 // Loading data
 const settings = global.settings;
@@ -86,9 +69,20 @@ if(settings.alwaysOnline == true || settings.autoIssue == true || settings.autoR
 }
 
 // Start telegram bot
+global.telegramBot = null;
 if(settings.telegramBot == true) {
-    const bot = new TelegramBot(settings.telegramToken);
-    bot.run();
+    global.telegramBot = new TelegramBot(settings.telegramToken);
+    global.telegramBot.run();
+    /*let a = {
+        id: '#PYRKNFGF',
+        name: 'PC (Steam), Name, Очки крови',
+        buyerId: '1106933',
+        buyerName: 'Name',
+        status: 'Оплачен',
+        price: 138.04,
+        unit: 'Р'
+    }
+    global.telegramBot.sendNewOrderNotification(a);*/
 }
 
 // Callbacks

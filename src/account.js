@@ -62,7 +62,7 @@ async function countTradeProfit() {
                 break;
             }
 
-            continueId = continueEl.firstElementChild.value;
+            continueId = continueEl.querySelector('input').getAttribute('value');
         }
     } catch (err) {
         log(`Ошибка при подсчёте профита: ${err}`, 'r');
@@ -87,7 +87,7 @@ async function getUserData() {
         const body = await resp.text();
 
         const doc = parseDOM(body);
-        const appData = JSON.parse(doc.querySelector("body").dataset.appData);
+        const appData = JSON.parse(doc.querySelector("body").getAttribute('data-app-data'));
 
         if(!doc.querySelector(".user-link-name")) {
             log(`Неверный golden_key.`, 'r');

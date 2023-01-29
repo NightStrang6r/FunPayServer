@@ -9,7 +9,7 @@ const { load, loadSettings, getConst } = global.storage;
 const config = global.settings;
 
 async function enableLotsRaise() {
-    let categories = await load('data/categories.json');
+    let categories = await load('data/other/categories.json');
     
     for(let i = 0; i < categories.length; i++) {
         categories[i].time = 0;

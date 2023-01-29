@@ -11,7 +11,7 @@ const config = global.settings;
 let goodsState;
 
 async function enableGoodsStateCheck() {
-    goodsState = await load('data/goodsState.json');
+    goodsState = await load('data/other/goodsState.json');
     log(`Автовосстановление предложений запущено, загружено ${c.yellowBright(goodsState.length)} активных предложение(ий).`);
 }
 

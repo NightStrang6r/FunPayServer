@@ -1,8 +1,7 @@
-const JSDOM = global.jsdom;
+const parse = global.node_html_parser;
 
 function parseDOM(text) {
-    const { document } = (new JSDOM(text)).window;
-    return document;
+    return parse(text);
 }
 
 export default parseDOM;

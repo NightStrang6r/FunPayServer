@@ -29,7 +29,7 @@ class TelegramBot {
         this.selectIssueTypeKeyboard = this.getSelectIssueTypeKeyboard();
         this.backKeyboard = this.getBackKeyboard();
 
-        this.waitingForLotDelete = true;
+        this.waitingForLotDelete = false;
         this.waitingForLotName = false;
         this.waitingForLotContent = false;
         this.lotType = '';
@@ -46,15 +46,9 @@ class TelegramBot {
     async onMessage(ctx) {
         try {
             const msg = ctx.update.message.text;
-
-            if(!this.isUserAuthed(ctx) && msg == global.settings.token) {
-                setConst('telegramUserName', ctx.update.message.from.username);
-                ctx.reply('Оп, всё, я взломал тебя 😈! Да ладно, шучу 🙃. Теперь ты авторизован и можешь управлять ботом.', this.mainKeyboard.reply());
-                return;
-            }
             
             if(!this.isUserAuthed(ctx)) {
-                ctx.reply('Привет! 😄 Похоже, ты пишешь мне впервые. Пришли мне golden_key, который ты вводил при настройке бота, чтобы начать работу 😀.');
+                ctx.reply('Привет! 😄\nДля авторизации введи свой ник в настройках FunPay Server, после чего перезапусти бота.');
                 return;
             }
     
@@ -132,7 +126,8 @@ class TelegramBot {
     }
 
     isUserAuthed(ctx) {
-        if(global.settings.telegramUserName == ctx.update.message.from.username) return true;
+        if(!global.settings.chatId) setConst('chatId', ctx.update.message.chat.id);
+        if(global.settings.userName == ctx.update.message.from.username) return true;
         return false;
     }
 
@@ -219,7 +214,7 @@ class TelegramBot {
 
     async editAutoIssue(ctx) {
         try {
-            const goods = await load('data/autoIssueGoods.json');
+            const goods = await load('data/configs/delivery.json');
             let goodsStr = '';
 
             let msg = `📄 <b>Список товаров</b> 📄`;
@@ -267,7 +262,7 @@ class TelegramBot {
         this.waitingForLotDelete = false;
 
         if(this.products.length > 0) {
-            let goods = await load('data/autoIssueGoods.json');
+            let goods = await load('data/configs/delivery.json');
 
             const product = {
                 "name": this.lotName,
@@ -275,7 +270,7 @@ class TelegramBot {
             }
 
             goods.push(product);
-            await updateFile(goods, 'data/autoIssueGoods.json');
+            await updateFile(goods, 'data/configs/delivery.json');
             this.products = [];
         }
 
@@ -302,7 +297,7 @@ class TelegramBot {
 
         this.lotContent = msg;
         let keyboard = this.backKeyboard;
-        let goods = await load('data/autoIssueGoods.json');
+        let goods = await load('data/configs/delivery.json');
 
         if(this.lotType != 'accounts') {
             this.waitingForLotContent = false;
@@ -314,7 +309,7 @@ class TelegramBot {
             }
     
             goods.push(product);
-            await updateFile(goods, 'data/autoIssueGoods.json');
+            await updateFile(goods, 'data/configs/delivery.json');
 
             this.lotName = '';
             this.lotContent = '';
@@ -337,7 +332,7 @@ class TelegramBot {
             return;
         }
 
-        let goods = await load('data/autoIssueGoods.json');
+        let goods = await load('data/configs/delivery.json');
         if(num > goods.length || num < 0) {
             ctx.reply(`Такого id нет в списке автовыдачи. Верну тебя в меню.`, this.mainKeyboard.reply());
             return;
@@ -345,7 +340,7 @@ class TelegramBot {
 
         let name = goods[num - 1].name;
         goods.splice(num - 1, 1);
-        await updateFile(goods, 'data/autoIssueGoods.json');
+        await updateFile(goods, 'data/configs/delivery.json');
 
         ctx.reply(`Ок, удалил товар "${name}" из списка автовыдачи.`, this.mainKeyboard.reply());
     }
@@ -355,12 +350,40 @@ class TelegramBot {
 
         ctx.replyWithDocument({
             source: contents,
-            filename: 'autoIssueGoods.json'
+            filename: 'delivery.json'
         }).catch(function(error) { log(error); })
     }
 
     async onInlineQuery(ctx) {
         console.log(ctx);
+    }
+
+    async sendNewMessageNotification(chat) {
+        let msg = `<b>Новое сообщение</b> от пользователя <i>${chat.userName}</i>.\n\n`;
+        msg += `${chat.message}\n`;
+        msg += `<i>${chat.time}</i> | <a href="https://funpay.com/chat/?node=${chat.node}">Перейти в чат</a>`
+
+        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+            parse_mode: 'HTML'
+        });
+    }
+
+    async sendNewOrderNotification(order) {
+        let msg = `<b>Новый заказ</b> <a href="https://funpay.com/orders/${order.id.replace('#', '')}/">${order.id}</a> на сумму <b><i>${order.price} ${order.unit}</i></b>.\n\n`;
+        msg += `<b>Покупатель:</b> <a href="https://funpay.com/users/${order.buyerId}/">${order.buyerName}</a>\n`;
+        msg += `<b>Товар:</b> <code>${order.name}</code>`;
+
+        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+            parse_mode: 'HTML'
+        });
+    }
+
+    async sendLotsRaiseNotification() {
+
+    }
+
+    async sendDeliveryNotification() {
+
     }
 }
 

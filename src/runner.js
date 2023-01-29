@@ -1,7 +1,7 @@
 // MODULES
 const log = global.log;
 const { getConst } = global.storage;
-const { getRandomTag } = global.activity;;
+const { getRandomTag } = global.activity;
 const fetch = global.fetch;
 
 // CONSTANTS
@@ -21,11 +21,12 @@ class Runner {
     }
 
     start() {
+        this.loop(true);
         setInterval(() => this.loop(), 6000);
         //log('Обработка событий запущена.', 'g');
     }
 
-    async loop() {
+    async loop(startup = false) {
         try {
             const appData = global.appData;
 
@@ -75,12 +76,14 @@ class Runner {
             for(let i = 0; i < resObjects.length; i++) {
                 if(resObjects[i].type == "orders_counters") {
                     this.ordersTag = resObjects[i].tag;
-                    this.newOrderCallback();
+                    if(!startup)
+                        this.newOrderCallback();
                 }
     
                 if(resObjects[i].type == "chat_bookmarks") {
                     this.messagesTag = resObjects[i].tag;
-                    this.newMessageCallback();
+                    if(!startup)
+                        this.newMessageCallback();
                 }
             }
         } catch (err) {

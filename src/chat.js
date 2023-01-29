@@ -7,8 +7,8 @@ const { load, getConst } = global.storage;
 const { getRandomTag } = global.activity;
 
 // CONSTANTS
-const config = global.settings;
-const autoRespData = await load('data/autoResponse.json');
+const settings = global.settings;
+const autoRespData = await load('data/configs/autoResponse.json');
 
 let isAutoRespBusy = false;
 
@@ -25,6 +25,11 @@ async function autoResponse() {
         const chats = await getChatBookmarks();
         for(let j = 0; j < chats.length; j++) {
             const chat = chats[j];
+
+            // Notification
+            if(global.telegramBot && settings.newMessageNotification) {
+                //global.telegramBot.sendNewMessageNotification(chat);
+            }
     
             // Command logic here
     
@@ -45,7 +50,7 @@ async function autoResponse() {
     
             // Custom commands
 
-            if(config.autoIssueTestCommand == true && chat.message.includes("!автовыдача")) {
+            if(settings.autoIssueTestCommand == true && chat.message.includes("!автовыдача")) {
                 const goodName = chat.message.split(`"`)[1];
                 if(!goodName) {
                     log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}: товар не указан.`, `c`);
@@ -82,7 +87,7 @@ async function getMessages(senderId) {
     try {
         const url = `${getConst('api')}/chat/history?node=users-${global.appData.id}-${senderId}&last_message=1000000000`;
         const headers = { 
-            "cookie": `golden_key=${config.golden_key}`,
+            "cookie": `golden_key=${settings.golden_key}`,
             "x-requested-with": "XMLHttpRequest"
         };
 
@@ -126,7 +131,7 @@ async function sendMessage(node, message, customNode = false) {
         const url = `${getConst('api')}/runner/`;
         const headers = {
             "accept": "*/*",
-            "cookie": `golden_key=${config.golden_key}; PHPSESSID=${global.appData.sessid}`,
+            "cookie": `golden_key=${settings.golden_key}; PHPSESSID=${global.appData.sessid}`,
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest"
         };
@@ -140,8 +145,8 @@ async function sendMessage(node, message, customNode = false) {
         }
 
         let reqMessage = message;
-        if(config.watermark && config.watermark != '') {
-            reqMessage = `${config.watermark}\n${message}`;
+        if(settings.watermark && settings.watermark != '') {
+            reqMessage = `${settings.watermark}\n${message}`;
         }
 
         const request = {
@@ -212,7 +217,7 @@ async function getChatBookmarks() {
         const url = `${getConst('api')}/runner/`;
         const headers = {
             "accept": "*/*",
-            "cookie": `golden_key=${config.golden_key}; PHPSESSID=${global.appData.sessid}`,
+            "cookie": `golden_key=${settings.golden_key}; PHPSESSID=${global.appData.sessid}`,
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "x-requested-with": "XMLHttpRequest"
         };
@@ -250,7 +255,7 @@ async function getChatBookmarks() {
             let userName = chat.querySelector('.media-user-name').innerHTML;
             let message = chat.querySelector('.contact-item-message').innerHTML;
             let time = chat.querySelector('.contact-item-time').innerHTML;
-            let node = chat.dataset.id;
+            let node = chat.getAttribute('data-id');
     
             result.push({
                 userName: userName,
