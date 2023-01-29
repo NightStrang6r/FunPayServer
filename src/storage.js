@@ -173,7 +173,7 @@ async function saveConfig(settings) {
     data = setValue(data, 'FunPay', 'autoResponse', settings.autoResponse);
     data = setValue(data, 'FunPay', 'autoDeliveryTestCommand', settings.autoIssueTestCommand);
     data = setValue(data, 'FunPay', 'waterMark', settings.watermark);
-    data = setValue(data, 'Telegram', 'enabled', settings.autoResponse)
+    data = setValue(data, 'Telegram', 'enabled', settings.telegramBot);
     data = setValue(data, 'Telegram', 'token', settings.telegramToken);
     data = setValue(data, 'Telegram', 'userName', settings.telegramUserName);
     data = setValue(data, 'Telegram', 'newMessageNotification', settings.newMessageNotification);

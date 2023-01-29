@@ -381,7 +381,7 @@ class TelegramBot {
     }
 
     async sendLotsRaiseNotification(category, nextTimeMsg) {
-        let msg = `⬆️ Предложения в категории <a href="https://funpay.com/lots/${category.node_id}/trade">${category.name}</a> подняты.`;
+        let msg = `⬆️ Предложения в категории <a href="https://funpay.com/lots/${category.node_id}/trade">${category.name}</a> подняты.\n`;
         msg += `Следующее поднятие: ${nextTimeMsg}`;
 
         this.bot.telegram.sendMessage(getConst('chatId'), msg, {

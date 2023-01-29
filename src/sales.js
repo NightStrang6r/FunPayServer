@@ -270,4 +270,32 @@ async function getOrders() {
     return result;
 }
 
-export { getOrders, getNewOrders, issueGood, searchOrdersByUserName, checkForNewOrders, getGood, addDeliveredName, enableAutoIssue };
+async function getLotNames() {
+    let result = [];
+    try {
+        const url = `${getConst('api')}/users/${global.appData.id}/`;
+        const headers = {
+            "cookie": `golden_key=${settings.golden_key}`
+        };
+
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
+
+        let resp = await fetch(url, options);
+        const data = await resp.text();
+        const doc = parseDOM(data);
+        const lotNamesEl = doc.querySelectorAll(".tc-desc-text");
+
+        for(let i = 0; i < lotNamesEl.length; i++) {
+            result.push(lotNamesEl[i].innerHTML);
+        }
+
+        return result;
+    } catch (err) {
+        log(`Ошибка при получении списка лотов: ${err}`, 'r');
+    }
+}
+
+export { getOrders, getNewOrders, issueGood, getLotNames, searchOrdersByUserName, checkForNewOrders, getGood, addDeliveredName, enableAutoIssue };

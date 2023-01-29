@@ -59,7 +59,7 @@ if(logTime) console.log(`Clone loaded in ${Date.now() - t}ms.`);
 if(logTime) console.log(`Modules loaded in ${Date.now() - time}ms.`);
 
 // Clear console
-//process.stdout.write("\u001b[2J\u001b[0;0H");
+process.stdout.write("\u001b[2J\u001b[0;0H");
 
 // Project Modules
 // Base

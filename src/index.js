@@ -13,7 +13,7 @@ const Runner = global.runner;
 const TelegramBot = global.telegram;
 
 const { enableAutoResponse, processMessages, autoResponse } = global.chat;
-const { checkForNewOrders, enableAutoIssue } = global.sales;
+const { checkForNewOrders, enableAutoIssue, getLotNames } = global.sales;
 const { checkGoodsState, enableGoodsStateCheck } = global.activity;
 
 global.startTime = Date.now();
