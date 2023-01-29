@@ -16,7 +16,7 @@ alwaysOnline: 1
 lotsRaise: 1
 
 # Автоактивация лотов после продажи. [1 - включить, 0 - выключить]
-goodsStateCheck: 1
+goodsStateCheck: 0
 
 # Автовыдача товаров. [1 - включить, 0 - выключить]
 autoDelivery: 1

@@ -106,6 +106,11 @@ async function issueGood(buyerIdOrNode, buyerName, goodName, type = 'id') {
             if(result) {
                 log(`Товар "${c.yellowBright(goodName)}" выдан покупателю ${c.yellowBright(buyerName)} с сообщением:`);
                 log(message);
+
+                if(global.telegramBot && settings.deliveryNotification) {
+                    global.telegramBot.sendDeliveryNotification(buyerName, goodName, message, node);
+                }
+
             } else {
                 log(`Не удалось отправить товар "${goodName}" покупателю ${buyerName}.`, 'r');
             }

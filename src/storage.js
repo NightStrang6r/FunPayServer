@@ -162,7 +162,7 @@ function loadConfig() {
 }
 
 async function saveConfig(settings) {
-    let data = await fs.readFile(`${_dirname}/s`, 'utf-8');
+    let data = await fs.readFile(`${_dirname}/s.example`, 'utf-8');
     
     data = setValue(data, 'FunPay', 'golden_key', settings.golden_key);
     data = setValue(data, 'FunPay', 'user_agent', settings.userAgent);

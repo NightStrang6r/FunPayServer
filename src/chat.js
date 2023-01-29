@@ -16,7 +16,7 @@ function enableAutoResponse() {
     log(`Автоответ запущен.`);
 }
 
-async function autoResponse() {
+async function processMessages() {
     if(isAutoRespBusy) return;
     isAutoRespBusy = true;
     let result = false;
@@ -27,8 +27,9 @@ async function autoResponse() {
             const chat = chats[j];
 
             // Notification
-            if(global.telegramBot && settings.newMessageNotification) {
-                //global.telegramBot.sendNewMessageNotification(chat);
+            if(chat.isUnread && global.telegramBot && settings.newMessageNotification) {
+                if(!chat.message.includes(settings.watermark))
+                    global.telegramBot.sendNewMessageNotification(chat);
             }
     
             // Command logic here
@@ -256,12 +257,14 @@ async function getChatBookmarks() {
             let message = chat.querySelector('.contact-item-message').innerHTML;
             let time = chat.querySelector('.contact-item-time').innerHTML;
             let node = chat.getAttribute('data-id');
+            let isUnread = chat.getAttribute('class').includes('unread');
     
             result.push({
                 userName: userName,
                 message: message,
                 time: time,
-                node: node
+                node: node,
+                isUnread: isUnread
             });
         }
     
@@ -271,4 +274,4 @@ async function getChatBookmarks() {
     }
 }
 
-export { getMessages, sendMessage, getChatBookmarks, autoResponse, enableAutoResponse, getLastMessageId, getNodeByUserName };
+export { getMessages, sendMessage, getChatBookmarks, processMessages, enableAutoResponse, getLastMessageId, getNodeByUserName };

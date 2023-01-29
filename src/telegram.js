@@ -359,31 +359,45 @@ class TelegramBot {
     }
 
     async sendNewMessageNotification(chat) {
-        let msg = `<b>Новое сообщение</b> от пользователя <i>${chat.userName}</i>.\n\n`;
-        msg += `${chat.message}\n`;
+        let msg = `💬 <b>Новое сообщение</b> от пользователя <b><i>${chat.userName}</i></b>.\n\n`;
+        msg += `${chat.message}\n\n`;
         msg += `<i>${chat.time}</i> | <a href="https://funpay.com/chat/?node=${chat.node}">Перейти в чат</a>`
 
         this.bot.telegram.sendMessage(getConst('chatId'), msg, {
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
         });
     }
 
     async sendNewOrderNotification(order) {
-        let msg = `<b>Новый заказ</b> <a href="https://funpay.com/orders/${order.id.replace('#', '')}/">${order.id}</a> на сумму <b><i>${order.price} ${order.unit}</i></b>.\n\n`;
+        let msg = `✔️ <b>Новый заказ</b> <a href="https://funpay.com/orders/${order.id.replace('#', '')}/">${order.id}</a> на сумму <b><i>${order.price} ${order.unit}</i></b>.\n\n`;
         msg += `<b>Покупатель:</b> <a href="https://funpay.com/users/${order.buyerId}/">${order.buyerName}</a>\n`;
         msg += `<b>Товар:</b> <code>${order.name}</code>`;
 
         this.bot.telegram.sendMessage(getConst('chatId'), msg, {
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
         });
     }
 
-    async sendLotsRaiseNotification() {
+    async sendLotsRaiseNotification(category, nextTimeMsg) {
+        let msg = `⬆️ Предложения в категории <a href="https://funpay.com/lots/${category.node_id}/trade">${category.name}</a> подняты.`;
+        msg += `Следующее поднятие: ${nextTimeMsg}`;
 
+        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
+        });
     }
 
-    async sendDeliveryNotification() {
+    async sendDeliveryNotification(buyerName, productName, message) {
+        let msg = `📦 Товар <code>${productName}</code> выдан покупателю <b><i>${buyerName}</i></b> с сообщением:\n\n`;
+        msg += `${message}`;
 
+        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
+        });
     }
 }
 

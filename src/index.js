@@ -12,7 +12,7 @@ const { getUserData, enableUserDataUpdate, countTradeProfit } = global.account;
 const Runner = global.runner;
 const TelegramBot = global.telegram;
 
-const { enableAutoResponse, autoResponse } = global.chat;
+const { enableAutoResponse, processMessages, autoResponse } = global.chat;
 const { checkForNewOrders, enableAutoIssue } = global.sales;
 const { checkGoodsState, enableGoodsStateCheck } = global.activity;
 
@@ -73,21 +73,11 @@ global.telegramBot = null;
 if(settings.telegramBot == true) {
     global.telegramBot = new TelegramBot(settings.telegramToken);
     global.telegramBot.run();
-    /*let a = {
-        id: '#PYRKNFGF',
-        name: 'PC (Steam), Name, Очки крови',
-        buyerId: '1106933',
-        buyerName: 'Name',
-        status: 'Оплачен',
-        price: 138.04,
-        unit: 'Р'
-    }
-    global.telegramBot.sendNewOrderNotification(a);*/
 }
 
 // Callbacks
 function onNewMessage() {
-    autoResponse();
+    processMessages();
 }
 
 function onNewOrder() {
