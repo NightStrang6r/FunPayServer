@@ -15,7 +15,7 @@ async function enableLotsRaise() {
         categories[i].time = 0;
     }
 
-    log(`Автоподнятие запущено, загружено ${c.yellowBright(categories.length)} категория(ий).`);
+    log(`Автоподнятие запущено, загружено ${c.yellowBright(categories.length)} категория(ий).`, 'g');
 
     await raiseLotsIfTime(categories);
     setInterval(() => {

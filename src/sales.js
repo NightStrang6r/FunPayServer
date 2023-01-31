@@ -21,7 +21,7 @@ async function enableAutoIssue() {
         return false;
     }
 
-    log(`Автовыдача запущена, загружено ${c.yellowBright(goods.length)} товара(ов).`);
+    log(`Автовыдача запущена, загружено ${c.yellowBright(goods.length)} товара(ов).`, 'g');
 }
 
 async function checkForNewOrders() {

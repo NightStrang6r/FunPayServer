@@ -17,7 +17,7 @@ class TelegramBot {
         await this.setupBot();
 
         this.bot.launch();
-        log(`Управление через telegram бота ${c.yellowBright(this.botInfo.username)} успешно запущено.`, 'g');
+        log(`Управление через telegram бота ${c.yellowBright(this.botInfo.username)} запущено.`, 'g');
     }
 
     async setupBot() {
@@ -126,8 +126,10 @@ class TelegramBot {
     }
 
     isUserAuthed(ctx) {
-        if(!global.settings.chatId) setConst('chatId', ctx.update.message.chat.id);
-        if(global.settings.userName == ctx.update.message.from.username) return true;
+        if(global.settings.userName == ctx.update.message.from.username) {
+            if(!global.settings.chatId) setConst('chatId', ctx.update.message.chat.id);
+            return true;
+        }
         return false;
     }
 
@@ -358,10 +360,10 @@ class TelegramBot {
         console.log(ctx);
     }
 
-    async sendNewMessageNotification(chat) {
-        let msg = `💬 <b>Новое сообщение</b> от пользователя <b><i>${chat.userName}</i></b>.\n\n`;
-        msg += `${chat.message}\n\n`;
-        msg += `<i>${chat.time}</i> | <a href="https://funpay.com/chat/?node=${chat.node}">Перейти в чат</a>`
+    async sendNewMessageNotification(message) {
+        let msg = `💬 <b>Новое сообщение</b> от пользователя <b><i>${message.user}</i></b>.\n\n`;
+        msg += `${message.content}\n\n`;
+        msg += `<i>${message.time}</i> | <a href="https://funpay.com/chat/?node=${message.node}">Перейти в чат</a>`
 
         this.bot.telegram.sendMessage(getConst('chatId'), msg, {
             parse_mode: 'HTML',
@@ -371,8 +373,8 @@ class TelegramBot {
 
     async sendNewOrderNotification(order) {
         let msg = `✔️ <b>Новый заказ</b> <a href="https://funpay.com/orders/${order.id.replace('#', '')}/">${order.id}</a> на сумму <b><i>${order.price} ${order.unit}</i></b>.\n\n`;
-        msg += `<b>Покупатель:</b> <a href="https://funpay.com/users/${order.buyerId}/">${order.buyerName}</a>\n`;
-        msg += `<b>Товар:</b> <code>${order.name}</code>`;
+        msg += `👤 <b>Покупатель:</b> <a href="https://funpay.com/users/${order.buyerId}/">${order.buyerName}</a>\n`;
+        msg += `🛍️ <b>Товар:</b> <code>${order.name}</code>`;
 
         this.bot.telegram.sendMessage(getConst('chatId'), msg, {
             parse_mode: 'HTML',
@@ -382,7 +384,7 @@ class TelegramBot {
 
     async sendLotsRaiseNotification(category, nextTimeMsg) {
         let msg = `⬆️ Предложения в категории <a href="https://funpay.com/lots/${category.node_id}/trade">${category.name}</a> подняты.\n`;
-        msg += `Следующее поднятие: ${nextTimeMsg}`;
+        msg += `⌚ Следующее поднятие: <b><i>${nextTimeMsg}</i></b>`;
 
         this.bot.telegram.sendMessage(getConst('chatId'), msg, {
             parse_mode: 'HTML',

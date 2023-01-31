@@ -13,7 +13,7 @@ const autoRespData = await load('data/configs/autoResponse.json');
 let isAutoRespBusy = false;
 
 function enableAutoResponse() {
-    log(`Автоответ запущен.`);
+    log(`Автоответ запущен.`, 'g');
 }
 
 async function processMessages() {
@@ -25,12 +25,6 @@ async function processMessages() {
         const chats = await getChatBookmarks();
         for(let j = 0; j < chats.length; j++) {
             const chat = chats[j];
-
-            // Notification
-            if(chat.isUnread && global.telegramBot && settings.newMessageNotification) {
-                if(!chat.message.includes(settings.watermark))
-                    global.telegramBot.sendNewMessageNotification(chat);
-            }
     
             // Command logic here
     
@@ -81,6 +75,14 @@ async function processMessages() {
 
     isAutoRespBusy = false;
     return result;
+}
+
+async function processIncomingMessages(message) {
+    // Notification
+    if(global.telegramBot && settings.newMessageNotification) {
+        if(!message.content.includes(settings.watermark))
+            global.telegramBot.sendNewMessageNotification(message);
+    }
 }
 
 async function getMessages(senderId) {
@@ -274,4 +276,4 @@ async function getChatBookmarks() {
     }
 }
 
-export { getMessages, sendMessage, getChatBookmarks, processMessages, enableAutoResponse, getLastMessageId, getNodeByUserName };
+export { getMessages, sendMessage, getChatBookmarks, processMessages, processIncomingMessages, enableAutoResponse, getLastMessageId, getNodeByUserName };

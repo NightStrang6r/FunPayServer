@@ -218,7 +218,7 @@
 
 Более долгий ответ:
 
-- Lolz.Guru - https://https://zelenka.guru/threads/4149637/
+- Lolz.Guru - https://zelenka.guru/threads/4149637/
 
 ## 🎉 Понравилось приложение?
 

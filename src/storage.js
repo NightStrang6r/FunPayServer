@@ -95,7 +95,7 @@ async function loadSettings() {
                 autoIssueTestCommand: 0,
                 telegramBot: answers.telegramBot,
                 telegramToken: answers.telegramToken,
-                userName: '',
+                userName: answers.userName,
                 newMessageNotification: 0,
                 newOrderNotification: 0,
                 lotsRaiseNotification: 0,
@@ -134,22 +134,22 @@ function loadConfig() {
     let settings = {
         golden_key: config.get('FunPay', 'golden_key'),
         userAgent: config.get('FunPay', 'user_agent'),
-        alwaysOnline: config.get('FunPay', 'alwaysOnline'),
-        lotsRaise: config.get('FunPay', 'lotsRaise'),
-        goodsStateCheck: config.get('FunPay', 'goodsStateCheck'),
-        autoIssue: config.get('FunPay', 'autoDelivery'),
-        autoResponse: config.get('FunPay', 'autoResponse'),
-        autoIssueTestCommand: config.get('FunPay', 'autoDeliveryTestCommand'),
-        telegramBot: config.get('Telegram', 'enabled'),
+        alwaysOnline: Number(config.get('FunPay', 'alwaysOnline')),
+        lotsRaise: Number(config.get('FunPay', 'lotsRaise')),
+        goodsStateCheck: Number(config.get('FunPay', 'goodsStateCheck')),
+        autoIssue: Number(config.get('FunPay', 'autoDelivery')),
+        autoResponse: Number(config.get('FunPay', 'autoResponse')),
+        autoIssueTestCommand: Number(config.get('FunPay', 'autoDeliveryTestCommand')),
+        telegramBot: Number(config.get('Telegram', 'enabled')),
         telegramToken: config.get('Telegram', 'token'),
         userName: config.get('Telegram', 'userName'),
-        newMessageNotification: config.get('Telegram', 'newMessageNotification'),
-        newOrderNotification: config.get('Telegram', 'newOrderNotification'),
-        lotsRaiseNotification: config.get('Telegram', 'lotsRaiseNotification'),
-        deliveryNotification: config.get('Telegram', 'deliveryNotification'),
+        newMessageNotification: Number(config.get('Telegram', 'newMessageNotification')),
+        newOrderNotification: Number(config.get('Telegram', 'newOrderNotification')),
+        lotsRaiseNotification: Number(config.get('Telegram', 'lotsRaiseNotification')),
+        deliveryNotification: Number(config.get('Telegram', 'deliveryNotification')),
         watermark: "[ 🔥NightBot ]",
         proxy: {
-            useProxy: config.get('Proxy', 'enabled'),
+            useProxy: Number(config.get('Proxy', 'enabled')),
             host: config.get('Proxy', 'host'),
             port: config.get('Proxy', 'port'),
             login: config.get('Proxy', 'login'),
@@ -175,7 +175,7 @@ async function saveConfig(settings) {
     data = setValue(data, 'FunPay', 'waterMark', settings.watermark);
     data = setValue(data, 'Telegram', 'enabled', settings.telegramBot);
     data = setValue(data, 'Telegram', 'token', settings.telegramToken);
-    data = setValue(data, 'Telegram', 'userName', settings.telegramUserName);
+    data = setValue(data, 'Telegram', 'userName', settings.userName);
     data = setValue(data, 'Telegram', 'newMessageNotification', settings.newMessageNotification);
     data = setValue(data, 'Telegram', 'newOrderNotification', settings.newOrderNotification);
     data = setValue(data, 'Telegram', 'lotsRaiseNotification', settings.lotsRaiseNotification);
@@ -316,6 +316,7 @@ async function askSettings() {
             userAgent: question1.userAgent,
             telegramBot: 0,
             telegramToken: telegramToken,
+            userName: '',
             alwaysOnline: 1,
             lotsRaise: 1,
             goodsStateCheck: 1,
@@ -387,6 +388,7 @@ async function askSettings() {
         userAgent: question1.userAgent,
         telegramBot: (question3.telegramBot == 'Да') ? 1 : 0,
         telegramToken: telegramToken,
+        userName: '',
         alwaysOnline: (answers.alwaysOnline == 'Да') ? 1 : 0,
         lotsRaise: (answers.lotsRaise == 'Да') ? 1 : 0,
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? 1 : 0,
