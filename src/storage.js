@@ -168,7 +168,6 @@ function loadConfig() {
 
 async function saveConfig(settings) {
     let data = await fs.readFile(`${_dirname}/s.example`, 'utf-8');
-    console.log(data.split('\n'));
     
     data = setValue(data, 'FunPay', 'golden_key', settings.golden_key);
     data = setValue(data, 'FunPay', 'user_agent', settings.userAgent);
@@ -309,7 +308,7 @@ async function askSettings() {
     {
         name: 'userAgent',
         type: 'input',
-        message: `Введите User-Agent браузера, с которого выполнялся вход на сайт FunPay. Его можно получить тут: https://n5m.ru/usagent.html`
+        message: `Введите User-Agent браузера, с которого выполнялся вход на сайт FunPay. Его можно получить тут: https://bit.ly/3l48x8b`
     }]);
 
     const question2 = await inq.prompt({
@@ -328,7 +327,7 @@ async function askSettings() {
             userAgent: question1.userAgent,
             telegramBot: 0,
             telegramToken: telegramToken,
-            userName: '',
+            userName: 'MyTelegramLogin',
             alwaysOnline: 1,
             lotsRaise: 1,
             goodsStateCheck: 1,
@@ -372,6 +371,11 @@ async function askSettings() {
         telegramToken = question4.telegramToken;
 
         question5 = await inq.prompt([{
+            name: 'userName',
+            type: 'input',
+            message: `Введите логин Telegram аккаунта, который будет использоваться для управления ботом (без @):`
+        },
+        {
             name: 'newMessageNotification',
             type: 'list',
             message: `Включить мгновенные уведомления о новых сообщениях?`,
@@ -438,7 +442,7 @@ async function askSettings() {
         userAgent: question1.userAgent,
         telegramBot: (question3.telegramBot == 'Да') ? 1 : 0,
         telegramToken: telegramToken,
-        userName: '',
+        userName: (question3.telegramBot == 'Да' && question5.userName) ? question5.userName : 'MyTelegramLogin',
         alwaysOnline: (answers.alwaysOnline == 'Да') ? 1 : 0,
         lotsRaise: (answers.lotsRaise == 'Да') ? 1 : 0,
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? 1 : 0,
