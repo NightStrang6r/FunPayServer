@@ -13,7 +13,7 @@ const { getUserData, enableUserDataUpdate, countTradeProfit } = global.account;
 const Runner = global.runner;
 const TelegramBot = global.telegram;
 
-const { enableAutoResponse, processMessages, processIncomingMessages, autoResponse } = global.chat;
+const { enableAutoResponse, processMessages, processIncomingMessages, autoResponse, addUsersToFile } = global.chat;
 const { checkForNewOrders, enableAutoIssue, getLotNames } = global.sales;
 const { checkGoodsState, enableGoodsStateCheck } = global.activity;
 
@@ -66,6 +66,10 @@ if(settings.newMessageNotification == true) {
     runner.registerNewIncomingMessageCallback(onNewIncomingMessage);
 }
 
+if(settings.greetingMessage == true && settings.greetingMessageText) {
+    await addUsersToFile();
+}
+
 enableUserDataUpdate(300 * 1000);
 
 // Start runner loop
@@ -74,7 +78,8 @@ if(settings.alwaysOnline == true
     || settings.autoResponse == true 
     || settings.goodsStateCheck == true
     || settings.newMessageNotification == true
-    || settings.newOrderNotification == true) {
+    || settings.newOrderNotification == true
+    || settings.greetingMessage == true) {
     await runner.start();
 }
 

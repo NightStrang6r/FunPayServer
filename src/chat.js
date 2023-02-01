@@ -3,7 +3,7 @@ const fetch = global.fetch;
 const c = global.chalk;
 const log = global.log;
 const parseDOM = global.DOMParser;
-const { load, getConst } = global.storage;
+const { load, getConst, updateFile } = global.storage;
 const { getRandomTag } = global.activity;
 
 // CONSTANTS
@@ -82,6 +82,17 @@ async function processIncomingMessages(message) {
     if(global.telegramBot && settings.newMessageNotification) {
         if(!message.content.includes(settings.watermark))
             global.telegramBot.sendNewMessageNotification(message);
+    }
+
+    // If new chat
+    if(settings.greetingMessage && settings.greetingMessageText) {
+        const newChatUsers = await load('data/other/newChatUsers.json');
+
+        if(!newChatUsers.includes(message.user)) {
+            newChatUsers.push(message.user);
+            await updateFile(newChatUsers, 'data/other/newChatUsers.json');
+            await sendMessage(message.node, settings.greetingMessageText);
+        }
     }
 }
 
@@ -276,4 +287,31 @@ async function getChatBookmarks() {
     }
 }
 
-export { getMessages, sendMessage, getChatBookmarks, processMessages, processIncomingMessages, enableAutoResponse, getLastMessageId, getNodeByUserName };
+async function addUsersToFile() {
+    try {
+        const bookmarks = await getChatBookmarks();
+        if(!bookmarks) return;
+
+        let users = [];
+        for(let i = 0; i < bookmarks.length; i++) {
+            const chat = bookmarks[i];
+            users.push(chat.userName);
+        }
+
+        await updateFile(users, 'data/other/newChatUsers.json');
+    } catch(err) {
+        log(`Ошибка при получении списка пользователей: ${err}`, 'e');
+    }
+}
+
+export { 
+    getMessages, 
+    sendMessage, 
+    getChatBookmarks, 
+    processMessages, 
+    processIncomingMessages,
+    addUsersToFile, 
+    enableAutoResponse, 
+    getLastMessageId, 
+    getNodeByUserName 
+};

@@ -37,6 +37,7 @@ async function initStorage() {
             "categories.json", 
             "categoriesCache.json", 
             "goodsState.json",
+            "newChatUsers.json",
             "telegram.txt"
         ];
     
@@ -91,7 +92,9 @@ async function loadSettings() {
                 lotsRaise: answers.lotsRaise,
                 goodsStateCheck: answers.goodsStateCheck, 
                 autoIssue: answers.autoIssue, 
-                autoResponse: answers.autoResponse, 
+                autoResponse: answers.autoResponse,
+                greetingMessage: answers.greetingMessage,
+                greetingMessageText: answers.greetingMessageText,
                 autoIssueTestCommand: 0,
                 telegramBot: answers.telegramBot,
                 telegramToken: answers.telegramToken,
@@ -139,6 +142,8 @@ function loadConfig() {
         goodsStateCheck: Number(config.get('FunPay', 'goodsStateCheck')),
         autoIssue: Number(config.get('FunPay', 'autoDelivery')),
         autoResponse: Number(config.get('FunPay', 'autoResponse')),
+        greetingMessage: Number(config.get('FunPay', 'greetingMessage')),
+        greetingMessageText: config.get('FunPay', 'greetingMessageText'),
         autoIssueTestCommand: Number(config.get('FunPay', 'autoDeliveryTestCommand')),
         telegramBot: Number(config.get('Telegram', 'enabled')),
         telegramToken: config.get('Telegram', 'token'),
@@ -171,6 +176,8 @@ async function saveConfig(settings) {
     data = setValue(data, 'FunPay', 'goodsStateCheck', settings.goodsStateCheck);
     data = setValue(data, 'FunPay', 'autoDelivery', settings.autoIssue);
     data = setValue(data, 'FunPay', 'autoResponse', settings.autoResponse);
+    data = setValue(data, 'FunPay', 'greetingMessage', settings.greetingMessage);
+    data = setValue(data, 'FunPay', 'greetingMessageText', settings.greetingMessageText);
     data = setValue(data, 'FunPay', 'autoDeliveryTestCommand', settings.autoIssueTestCommand);
     data = setValue(data, 'FunPay', 'waterMark', settings.watermark);
     data = setValue(data, 'Telegram', 'enabled', settings.telegramBot);
@@ -321,7 +328,13 @@ async function askSettings() {
             lotsRaise: 1,
             goodsStateCheck: 1,
             autoIssue: 1,
-            autoResponse: 1
+            autoResponse: 1,
+            newMessageNotification: 1,
+            newOrderNotification: 1,
+            lotsRaiseNotification: 1,
+            deliveryNotification: 1,
+            greetingMessage: 0,
+            greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
         }
     }
 
@@ -393,7 +406,9 @@ async function askSettings() {
         lotsRaise: (answers.lotsRaise == 'Да') ? 1 : 0,
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? 1 : 0,
         autoIssue: (answers.autoIssue == 'Да') ? 1 : 0,
-        autoResponse: (answers.autoResponse == 'Да') ? 1 : 0
+        autoResponse: (answers.autoResponse == 'Да') ? 1 : 0,
+        greetingMessage: 0,
+        greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
     }
 
     console.log();
