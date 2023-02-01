@@ -167,7 +167,7 @@ function loadConfig() {
 }
 
 async function saveConfig(settings) {
-    let data = await fs.readFile(`${_dirname}/s.example`, 'utf-8');
+    let data = await fs.readFile(`${_dirname}/s`, 'utf-8');
     
     data = setValue(data, 'FunPay', 'golden_key', settings.golden_key);
     data = setValue(data, 'FunPay', 'user_agent', settings.userAgent);
@@ -267,6 +267,10 @@ function getConst(name) {
         case 'chatId': 
             if(!global.settings.chatId)  {
                 global.settings.chatId = fs.readFileSync(`${otherPath}/telegram.txt`, 'utf8');
+
+                if(isNaN(global.settings.chatId)) {
+                    throw new Error('Напишите своему боту в Telegram, чтобы он мог отправлять вам уведомления.');
+                }
             }
             return global.settings.chatId;
     }
