@@ -167,7 +167,8 @@ function loadConfig() {
 }
 
 async function saveConfig(settings) {
-    let data = await fs.readFile(`${_dirname}/s`, 'utf-8');
+    let data = await fs.readFile(`${_dirname}/s.example`, 'utf-8');
+    console.log(data.split('\n'));
     
     data = setValue(data, 'FunPay', 'golden_key', settings.golden_key);
     data = setValue(data, 'FunPay', 'user_agent', settings.userAgent);
@@ -200,7 +201,7 @@ async function saveConfig(settings) {
 function setValue(file, section, name, value) {
     let sections = file.split(`[${section}]`);
     let currentSection = sections[1];
-    let strings = currentSection.split('\r\n');
+    let strings = currentSection.split('\n');
 
     for(let i = 0; i < strings.length; i++) {
         let str = strings[i];
@@ -210,7 +211,7 @@ function setValue(file, section, name, value) {
         }
     }
 
-    currentSection = strings.join('\r\n');
+    currentSection = strings.join('\n');
     sections[1] = currentSection;
     file = sections.join(`[${section}]`);
 
