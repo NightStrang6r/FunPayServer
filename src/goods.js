@@ -11,7 +11,7 @@ async function updateGoodsState() {
     log(`Обновляем список состояния товаров...`, 'c');
     const data = await getActiveProducts(global.appData.id);
 
-    await updateFile(data, `data/goodsState.json`);
+    await updateFile(data, `data/other/goodsState.json`);
     log(`Список состояния товаров обновлён.`, 'g');
 }
 
@@ -27,7 +27,7 @@ async function updateGoodsState() {
 async function getAllGoods(userId, full = false) {
     let result = [];
     try {
-        let cat = await load('data/categories.json');
+        let cat = await load('data/other/categories.json');
 
         if(!cat || cat.length == 0) {
             cat = await updateCategoriesData();
@@ -77,18 +77,18 @@ async function getGoodsFromCategory(category, full = false) {
 
             if(full) {
                 good = {
-                    node_id: goodEl.dataset.node,
-                    offer_id: goodEl.dataset.offer,
+                    node_id: goodEl.getAttribute('data-node'),
+                    offer_id: goodEl.getAttribute('data-offer'),
                     server: goodEl.querySelector(".tc-server").innerHTML,
                     description: goodEl.querySelector(".tc-desc .tc-desc-text").innerHTML,
-                    price: goodEl.querySelector(".tc-price").dataset.s,
+                    price: goodEl.querySelector(".tc-price").getAttribute('data-s'),
                     unit: goodEl.querySelector(".tc-price .unit").innerHTML,
                     active: active
                 };
             } else {
                 good = {
-                    node_id: goodEl.dataset.node,
-                    offer_id: goodEl.dataset.offer,
+                    node_id: goodEl.getAttribute('data-node'),
+                    offer_id: goodEl.getAttribute('data-offer'),
                     active: active
                 };
             }
@@ -111,19 +111,20 @@ async function getActiveProducts(id) {
         const doc = parseDOM(body);
 
         const mb20 = doc.querySelector('.mb20');
+        if(!mb20) return [];
         const offers = mb20.querySelectorAll('.offer');
 
         for(let i = 0; i < offers.length; i++) {
             const offer = offers[i];
             const title = offer.querySelector('.offer-list-title a');
-            const link = title.href;
+            const link = title.getAttribute('href');
             if(link.includes('chips')) continue;
             const node = link.split('/')[4];
 
             const lots = offer.querySelectorAll('div[data-section-type="lot"] a');
             for(let j = 0; j < lots.length; j++) {
                 const lot = lots[j];
-                const offerId = lot.href.split('id=')[1];
+                const offerId = lot.getAttribute('href').split('id=')[1];
 
                 result.push({
                     node_id: node,

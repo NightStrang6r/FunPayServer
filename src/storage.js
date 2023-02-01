@@ -8,7 +8,17 @@ const { exit } = global.helpers;
 
 // CONSTANTS
 const _dirname = process.cwd();
+
 const dataFolder = 'data';
+const logsFolder = 'logs';
+const configFolder = 'configs';
+const otherFolder = 'other';
+
+const dataPath = `${_dirname}/${dataFolder}`;
+const logsPath = `${dataPath}/${logsFolder}`;
+const configPath = `${dataPath}/${configFolder}`;
+const otherPath = `${dataPath}/${otherFolder}`;
+
 const config = new ConfigParser();
 
 // START
@@ -18,19 +28,48 @@ global.settings = await loadSettings();
 // FUNCTIONS
 async function initStorage() {
     try {
-        const files = [
-            "autoIssueGoods.json", "autoResponse.json", "categories.json", "categoriesCache.json", "goodsState.json"
+        const configFiles = [
+            "delivery.json", 
+            "autoResponse.json"
+        ];
+
+        const otherFiles = [
+            "categories.json", 
+            "categoriesCache.json", 
+            "goodsState.json",
+            "newChatUsers.json",
+            "telegram.txt"
         ];
     
-        if(!(await fs.exists(`${_dirname}/${dataFolder}`))) {
-            await fs.mkdir(`${_dirname}/${dataFolder}`);
+        if(!(await fs.exists(dataPath))) {
+            await fs.mkdir(dataPath);
+        }
+
+        if(!(await fs.exists(logsPath))) {
+            await fs.mkdir(logsPath);
+        }
+
+        if(!(await fs.exists(configPath))) {
+            await fs.mkdir(configPath);
+        }
+
+        if(!(await fs.exists(otherPath))) {
+            await fs.mkdir(otherPath);
         }
     
-        for(let i = 0; i < files.length; i++) {
-            const file = files[i];
+        for(let i = 0; i < configFiles.length; i++) {
+            const file = configFiles[i];
 
-            if(!(await fs.exists(`${_dirname}/${dataFolder}/${file}`))) {
-                await fs.writeFile(`${_dirname}/${dataFolder}/${file}`, '[]');
+            if(!(await fs.exists(`${configPath}/${file}`))) {
+                await fs.writeFile(`${configPath}/${file}`, '[]');
+            }
+        }
+
+        for(let i = 0; i < otherFiles.length; i++) {
+            const file = otherFiles[i];
+
+            if(!(await fs.exists(`${otherPath}/${file}`))) {
+                await fs.writeFile(`${otherPath}/${file}`, '[]');
             }
         }
     } catch (err) {
@@ -49,15 +88,21 @@ async function loadSettings() {
             settings = {
                 golden_key: answers.golden_key,
                 userAgent: answers.userAgent,
-                telegramBot: answers.telegramBot,
-                telegramToken: answers.telegramToken,
-                telegramUserName: '',
                 alwaysOnline: answers.alwaysOnline,
                 lotsRaise: answers.lotsRaise,
                 goodsStateCheck: answers.goodsStateCheck, 
                 autoIssue: answers.autoIssue, 
-                autoResponse: answers.autoResponse, 
+                autoResponse: answers.autoResponse,
+                greetingMessage: answers.greetingMessage,
+                greetingMessageText: answers.greetingMessageText,
                 autoIssueTestCommand: 0,
+                telegramBot: answers.telegramBot,
+                telegramToken: answers.telegramToken,
+                userName: answers.userName,
+                newMessageNotification: answers.newMessageNotification,
+                newOrderNotification: answers.newOrderNotification,
+                lotsRaiseNotification: answers.lotsRaiseNotification,
+                deliveryNotification: answers.deliveryNotification,
                 watermark: "[ 🔥NightBot ]",
                 proxy: {
                     useProxy: 0,
@@ -92,18 +137,24 @@ function loadConfig() {
     let settings = {
         golden_key: config.get('FunPay', 'golden_key'),
         userAgent: config.get('FunPay', 'user_agent'),
-        telegramBot: config.get('Telegram', 'enabled'),
+        alwaysOnline: Number(config.get('FunPay', 'alwaysOnline')),
+        lotsRaise: Number(config.get('FunPay', 'lotsRaise')),
+        goodsStateCheck: Number(config.get('FunPay', 'goodsStateCheck')),
+        autoIssue: Number(config.get('FunPay', 'autoDelivery')),
+        autoResponse: Number(config.get('FunPay', 'autoResponse')),
+        greetingMessage: Number(config.get('FunPay', 'greetingMessage')),
+        greetingMessageText: config.get('FunPay', 'greetingMessageText'),
+        autoIssueTestCommand: Number(config.get('FunPay', 'autoDeliveryTestCommand')),
+        telegramBot: Number(config.get('Telegram', 'enabled')),
         telegramToken: config.get('Telegram', 'token'),
-        telegramUserName: config.get('Telegram', 'userName'),
-        alwaysOnline: config.get('FunPay', 'alwaysOnline'),
-        lotsRaise: config.get('FunPay', 'lotsRaise'),
-        goodsStateCheck: config.get('FunPay', 'goodsStateCheck'),
-        autoIssue: config.get('FunPay', 'autoDelivery'),
-        autoResponse: config.get('FunPay', 'autoResponse'),
-        autoIssueTestCommand: config.get('FunPay', 'autoDeliveryTestCommand'),
+        userName: config.get('Telegram', 'userName'),
+        newMessageNotification: Number(config.get('Telegram', 'newMessageNotification')),
+        newOrderNotification: Number(config.get('Telegram', 'newOrderNotification')),
+        lotsRaiseNotification: Number(config.get('Telegram', 'lotsRaiseNotification')),
+        deliveryNotification: Number(config.get('Telegram', 'deliveryNotification')),
         watermark: "[ 🔥NightBot ]",
         proxy: {
-            useProxy: config.get('Proxy', 'enabled'),
+            useProxy: Number(config.get('Proxy', 'enabled')),
             host: config.get('Proxy', 'host'),
             port: config.get('Proxy', 'port'),
             login: config.get('Proxy', 'login'),
@@ -116,7 +167,7 @@ function loadConfig() {
 }
 
 async function saveConfig(settings) {
-    let data = await fs.readFile(`${_dirname}/s`, 'utf-8');
+    let data = await fs.readFile(`${_dirname}/s.example`, 'utf-8');
     
     data = setValue(data, 'FunPay', 'golden_key', settings.golden_key);
     data = setValue(data, 'FunPay', 'user_agent', settings.userAgent);
@@ -125,11 +176,17 @@ async function saveConfig(settings) {
     data = setValue(data, 'FunPay', 'goodsStateCheck', settings.goodsStateCheck);
     data = setValue(data, 'FunPay', 'autoDelivery', settings.autoIssue);
     data = setValue(data, 'FunPay', 'autoResponse', settings.autoResponse);
+    data = setValue(data, 'FunPay', 'greetingMessage', settings.greetingMessage);
+    data = setValue(data, 'FunPay', 'greetingMessageText', settings.greetingMessageText);
     data = setValue(data, 'FunPay', 'autoDeliveryTestCommand', settings.autoIssueTestCommand);
     data = setValue(data, 'FunPay', 'waterMark', settings.watermark);
-    data = setValue(data, 'Telegram', 'enabled', settings.autoResponse)
+    data = setValue(data, 'Telegram', 'enabled', settings.telegramBot);
     data = setValue(data, 'Telegram', 'token', settings.telegramToken);
-    data = setValue(data, 'Telegram', 'userName', settings.telegramUserName);
+    data = setValue(data, 'Telegram', 'userName', settings.userName);
+    data = setValue(data, 'Telegram', 'newMessageNotification', settings.newMessageNotification);
+    data = setValue(data, 'Telegram', 'newOrderNotification', settings.newOrderNotification);
+    data = setValue(data, 'Telegram', 'lotsRaiseNotification', settings.lotsRaiseNotification);
+    data = setValue(data, 'Telegram', 'deliveryNotification', settings.deliveryNotification);
     data = setValue(data, 'Proxy', 'enabled', settings.proxy.useProxy);
     data = setValue(data, 'Proxy', 'host', settings.proxy.host);
     data = setValue(data, 'Proxy', 'port', settings.proxy.port);
@@ -206,21 +263,26 @@ function checkTelegramToken(token) {
 function getConst(name) {
     switch (name) {
         case 'api': return 'https://funpay.com';
-        case 'autoIssueFilePath': return `${_dirname}/${dataFolder}/autoIssueGoods.json`;
+        case 'autoIssueFilePath': return `${dataPath}/configs/delivery.json`;
+        case 'chatId': 
+            if(!global.settings.chatId)  {
+                global.settings.chatId = fs.readFileSync(`${otherPath}/telegram.txt`, 'utf8');
+            }
+            return global.settings.chatId;
     }
 }
 
 function setConst(name, value) {
     switch (name) {
-        case 'telegramUserName': 
-            global.settings.telegramUserName = value;
-            fs.writeFileSync(`${_dirname}/settings.json`, JSON.stringify(global.settings, null, 4)); 
+        case 'chatId':
+            global.settings.chatId = value;
+            fs.writeFileSync(`${otherPath}/telegram.txt`, value.toString());
             break;
     }
 }
 
 async function loadAutoIssueFile() {
-    return await fs.readFile(`${_dirname}/data/autoIssueGoods.json`, 'utf8');
+    return await fs.readFile(`${_dirname}/data/configs/delivery.json`, 'utf8');
 }
 
 async function askSettings() {
@@ -261,11 +323,18 @@ async function askSettings() {
             userAgent: question1.userAgent,
             telegramBot: 0,
             telegramToken: telegramToken,
+            userName: '',
             alwaysOnline: 1,
             lotsRaise: 1,
             goodsStateCheck: 1,
             autoIssue: 1,
-            autoResponse: 1
+            autoResponse: 1,
+            newMessageNotification: 1,
+            newOrderNotification: 1,
+            lotsRaiseNotification: 1,
+            deliveryNotification: 1,
+            greetingMessage: 1,
+            greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
         }
     }
 
@@ -276,6 +345,8 @@ async function askSettings() {
         choices: ['Да', 'Нет']
     });
     
+    let question5 = {};
+
     if(question3.telegramBot == 'Да') {
         const question4 = await inq.prompt({
             name: 'telegramToken',
@@ -294,6 +365,30 @@ async function askSettings() {
         });
 
         telegramToken = question4.telegramToken;
+
+        question5 = await inq.prompt([{
+            name: 'newMessageNotification',
+            type: 'list',
+            message: `Включить мгновенные уведомления о новых сообщениях?`,
+            choices: ['Да', 'Нет']
+        },
+        {
+            name: 'newOrderNotification',
+            type: 'list',
+            message: `Включить уведомления о новых заказах?`,
+            choices: ['Да', 'Нет']
+        },
+        {
+            name: 'lotsRaiseNotification',
+            type: 'list',
+            message: `Включить уведомления о поднятии лотов?`,
+            choices: ['Да', 'Нет']
+        },{
+            name: 'deliveryNotification',
+            type: 'list',
+            message: `Включить уведомления о выдаче товара?`,
+            choices: ['Да', 'Нет']
+        }]);
     }
 
     const answers = await inq.prompt([{
@@ -311,7 +406,7 @@ async function askSettings() {
     {
         name: 'autoIssue',
         type: 'list',
-        message: `Включить функцию автовыдачи товаров (не забудьте потом её настроить в файле autoIssueGoods.json)?`,
+        message: `Включить функцию автовыдачи товаров (не забудьте потом её настроить в файле delivery.json)?`,
         choices: ['Да', 'Нет']
     },
     {
@@ -325,6 +420,12 @@ async function askSettings() {
         type: 'list',
         message: `Включить функцию автоответа на команды (настройка в файле autoResponse.json)?`,
         choices: ['Да', 'Нет']
+    },
+    {
+        name: 'greetingMessage',
+        type: 'list',
+        message: `Включить функцию автоответа на первое сообщение (настройка в файле settings.txt)?`,
+        choices: ['Да', 'Нет']
     }]);
 
     const askSettings = {
@@ -332,11 +433,18 @@ async function askSettings() {
         userAgent: question1.userAgent,
         telegramBot: (question3.telegramBot == 'Да') ? 1 : 0,
         telegramToken: telegramToken,
+        userName: '',
         alwaysOnline: (answers.alwaysOnline == 'Да') ? 1 : 0,
         lotsRaise: (answers.lotsRaise == 'Да') ? 1 : 0,
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? 1 : 0,
         autoIssue: (answers.autoIssue == 'Да') ? 1 : 0,
-        autoResponse: (answers.autoResponse == 'Да') ? 1 : 0
+        autoResponse: (answers.autoResponse == 'Да') ? 1 : 0,
+        newMessageNotification: (question5.newMessageNotification == 'Да') ? 1 : 0,
+        newOrderNotification: (question5.newOrderNotification == 'Да') ? 1 : 0,
+        lotsRaiseNotification: (question5.lotsRaiseNotification == 'Да') ? 1 : 0,
+        deliveryNotification: (question5.deliveryNotification == 'Да') ? 1 : 0,
+        greetingMessage: (answers.greetingMessage == 'Да') ? 1 : 0,
+        greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
     }
 
     console.log();

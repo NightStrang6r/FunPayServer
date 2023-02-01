@@ -3,19 +3,19 @@ const c = global.chalk;
 const fetch = global.fetch;
 const log = global.log;
 const { sleep } = global.helpers;
-const { load, loadSettings, getConst } = global.storage;
+const { load, getConst } = global.storage;
 
 // CONSTANTS
-const config = global.settings;
+const settings = global.settings;
 
 async function enableLotsRaise() {
-    let categories = await load('data/categories.json');
+    let categories = await load('data/other/categories.json');
     
     for(let i = 0; i < categories.length; i++) {
         categories[i].time = 0;
     }
 
-    log(`Автоподнятие запущено, загружено ${c.yellowBright(categories.length)} категория(ий).`);
+    log(`Автоподнятие запущено, загружено ${c.yellowBright(categories.length)} категория(ий).`, 'g');
 
     await raiseLotsIfTime(categories);
     setInterval(() => {
@@ -49,6 +49,10 @@ async function raiseLotsIfTime(categories) {
                 res = await raiseLot(cat.game_id, cat.node_id);
                 cat.time = getNewTiming(res.msg);
                 log(`Предложения в категории '${c.yellowBright(cat.name)}' подняты. Следующее поднятие: ${c.yellowBright(res.msg)}`, 'g');
+
+                if(global.telegramBot && settings.lotsRaiseNotification) {
+                    global.telegramBot.sendLotsRaiseNotification(cat, res.msg);
+                }
             }
 
             await sleep(500);
@@ -106,7 +110,7 @@ async function raiseLot(game_id, node_id) {
         const headers = {
             "accept": "*/*",
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "cookie": `locale=ru; golden_key=${config.golden_key}`,
+            "cookie": `locale=ru; golden_key=${settings.golden_key}`,
             "x-requested-with": "XMLHttpRequest"
         }
 

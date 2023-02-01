@@ -11,8 +11,8 @@ const config = global.settings;
 let goodsState;
 
 async function enableGoodsStateCheck() {
-    goodsState = await load('data/goodsState.json');
-    log(`Автовосстановление предложений запущено, загружено ${c.yellowBright(goodsState.length)} активных предложение(ий).`);
+    goodsState = await load('data/other/goodsState.json');
+    log(`Автовосстановление предложений запущено, загружено ${c.yellowBright(goodsState.length)} активных предложение(ий).`, 'g');
 }
 
 async function checkGoodsState() {
@@ -78,19 +78,19 @@ async function setState(state, offer_id, node_id) {
 
         let inputData = [];
         inputsEl.forEach(input => {
-            if(input.name == 'active') {
+            if(input.getAttribute('name') == 'active') {
                 if(state) {
-                    input.value = 'on';
+                    input.setAttribute('value', 'on');
                 } else {
                     return;
                 }
             }
-            if(input.value == undefined) {
-                input.value = '';
+            if(input.getAttribute('value') == undefined) {
+                input.setAttribute('value', '');
             }
             inputData[inputData.length] = {
-                name: input.name,
-                value: input.value
+                name: input.getAttribute('name'),
+                value: input.getAttribute('value')
             };
         });
         textAreaEl.forEach(text => {
@@ -98,7 +98,7 @@ async function setState(state, offer_id, node_id) {
                 text.innerHTML = '';
             }
             inputData[inputData.length] = {
-                name: text.name,
+                name: text.getAttribute('name'),
                 value: text.innerHTML
             };
         });
@@ -107,14 +107,14 @@ async function setState(state, offer_id, node_id) {
             let value = "";
 
             options.forEach(option => {
-                if(option.selected) {
-                    value = option.value;
+                if(option.getAttribute('selected') != null) {
+                    value = option.getAttribute('value');
                     return;
                 }
             });
 
             inputData[inputData.length] = {
-                name: select.name,
+                name: select.getAttribute('name'),
                 value: value
             };
         });

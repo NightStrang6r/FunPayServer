@@ -5,14 +5,14 @@ const { load, getConst, updateFile } = global.storage;
 const parseDOM = global.DOMParser;
 const { headers } = global.account;
 
-let categoriesCache = await load('data/categoriesCache.json');
+let categoriesCache = await load('data/other/categoriesCache.json');
 
 async function updateCategoriesData() {
     log(`Обновляем список категорий...`, 'c');
     const cat = await getAllCategories(global.appData.id);
     const data = await getCategoriesData(cat);
 
-    await updateFile(data, `data/categories.json`);
+    await updateFile(data, `data/other/categories.json`);
     log(`Список категорий обновлён.`, 'g');
     return data;
 }
@@ -38,7 +38,7 @@ async function getCategoriesData(categories) {
             result.push(categoryData);
         }
 
-        await updateFile(categoriesCache, 'data/categoriesCache.json');
+        await updateFile(categoriesCache, 'data/other/categoriesCache.json');
     } catch (err) {
         log(`Ошибка при получении данных категорий: ${err}`, 'r');
     }
@@ -59,14 +59,14 @@ async function getCategoryData(category) {
         const body = await resp.text();
         
         const doc = parseDOM(body);
-        const buttonEl = doc.querySelector(".col-sm-6").firstElementChild;
+        const buttonEl = doc.querySelector(".col-sm-6").querySelector('button');
         const textEl = doc.querySelector(".inside");
         const text = textEl.innerHTML.replace('&nbsp;', ' ');
         
         result = {
             name: text,
-            node_id: buttonEl.dataset.node,
-            game_id: buttonEl.dataset.game
+            node_id: buttonEl.getAttribute('data-node'),
+            game_id: buttonEl.getAttribute('data-game')
         }
     } catch (err) {
         log(`Ошибка при получении данных категории: ${err}`, 'r');
@@ -89,9 +89,9 @@ async function getAllCategories(id) {
         const categories = doc.querySelectorAll(".offer-list-title-button");
 
         for(let i = 0; i < categories.length; i++) {
-            if(categories[i].firstElementChild.href.includes('chips')) continue;
+            if(categories[i].querySelector('a').getAttribute('href').includes('chips')) continue;
             
-            result.push(categories[i].firstElementChild.href);
+            result.push(categories[i].querySelector('a').getAttribute('href'));
         }
     } catch (err) {
         log(`Ошибка при получении категорий: ${err}`, 'r');

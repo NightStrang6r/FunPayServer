@@ -5,28 +5,32 @@ if(logTime) console.log('Loading modules...');
 
 // Node Modules
 let t = Date.now();
-global.commander = (await import('commander')).program;
-if(logTime) console.log(`Commander loaded in ${Date.now() - t}ms.`);
-
-t = Date.now();
-global.project_version = (await import('project-version')).default;
-if(logTime) console.log(`Project version loaded in ${Date.now() - t}ms.`);
-
-t = Date.now();
 global.fs_extra = (await import('fs-extra')).default;
 if(logTime) console.log(`FS Extra loaded in ${Date.now() - t}ms.`);
+
+t = Date.now();
+global.https = (await import('https')).default;
+if(logTime) console.log(`HTTPS loaded in ${Date.now() - t}ms.`);
+
+t = Date.now();
+global.dns = (await import('dns/promises')).default;
+if(logTime) console.log(`DNS loaded in ${Date.now() - t}ms.`);
 
 t = Date.now();
 global.chalk = (await import('chalk')).default;
 if(logTime) console.log(`Chalk loaded in ${Date.now() - t}ms.`);
 
 t = Date.now();
-global.jsdom = (await import('jsdom')).JSDOM;
-if(logTime) console.log(`JSDOM loaded in ${Date.now() - t}ms.`);
+global.node_html_parser = (await import('node-html-parser')).parse;
+if(logTime) console.log(`Node HTML Parser loaded in ${Date.now() - t}ms.`);
 
-t = Date.now();
-global.inquirer = (await import('inquirer')).default;
-if(logTime) console.log(`Inquirer loaded in ${Date.now() - t}ms.`);
+if(!(await global.fs_extra.exists('./settings.txt'))) {
+    t = Date.now();
+    global.inquirer = (await import('inquirer')).default;
+    if(logTime) console.log(`Inquirer loaded in ${Date.now() - t}ms.`);
+} else {
+    global.inquirer = null;
+}
 
 t = Date.now();
 global.config_parser = (await import('configparser')).default;
@@ -53,6 +57,9 @@ global.clone = (await import('clone')).default;
 if(logTime) console.log(`Clone loaded in ${Date.now() - t}ms.`);
 
 if(logTime) console.log(`Modules loaded in ${Date.now() - time}ms.`);
+
+// Clear console
+process.stdout.write("\u001b[2J\u001b[0;0H");
 
 // Project Modules
 // Base

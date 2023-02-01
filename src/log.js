@@ -1,6 +1,5 @@
 // MODULES
 const c = global.chalk;
-const ver = global.project_version;
 const fs = global.fs_extra;
 
 // CONSTANTS
@@ -10,7 +9,7 @@ const logo = `
 ▀░░ ░▀▀░ ▀░░▀ ▀░░ ▀░▀ ░▀░ . ▀▀░ ▀▀▀ ▀░▀ ░░▀░░ ▀▀▀ ▀░▀
 `;
 
-const version = `v${ver}`;
+const version = `v${(JSON.parse((await fs.readFile('./package.json')))).version}`;
 const by = 'By NightStranger\n';
 const enableFileLog = true;
 
@@ -101,7 +100,12 @@ async function logToFile(msg) {
     try {
         const _dirname = process.cwd();
         const dataFolder = 'data';
-        const logPath = `${_dirname}/${dataFolder}/log/`;
+        const dataPath = `${_dirname}/${dataFolder}`;
+        const logPath = `${dataPath}/logs/`;
+
+        if(!(await fs.exists(dataPath))) {
+            await fs.mkdir(dataPath);
+        }
 
         if(!(await fs.exists(logPath))) {
             await fs.mkdir(logPath);
@@ -115,7 +119,7 @@ async function logToFile(msg) {
 
         await fs.appendFile(logFile, `${msg}\n`);
     } catch(err) {
-        console.log(`Ошибка записи файла: ${err}`, 'r');
+        console.log(`Ошибка записи файла: ${err}`);
     }
 }
 

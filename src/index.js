@@ -1,9 +1,8 @@
 await import('./modules.js');
 
 // MODULES
-const program = global.commander;
-const ver = global.project_version;
 const log = global.log;
+const c = global.chalk;
 const { loadSettings } = global.storage;
 const { exit } = global.helpers;
 const { enableLotsRaise } = global.raise;
@@ -14,8 +13,8 @@ const { getUserData, enableUserDataUpdate, countTradeProfit } = global.account;
 const Runner = global.runner;
 const TelegramBot = global.telegram;
 
-const { enableAutoResponse, autoResponse } = global.chat;
-const { checkForNewOrders, enableAutoIssue } = global.sales;
+const { enableAutoResponse, processMessages, processIncomingMessages, autoResponse, addUsersToFile } = global.chat;
+const { checkForNewOrders, enableAutoIssue, getLotNames } = global.sales;
 const { checkGoodsState, enableGoodsStateCheck } = global.activity;
 
 global.startTime = Date.now();
@@ -25,21 +24,6 @@ process.on('uncaughtException', (e) => {
     log('Ошибка: необработанное исключение. Сообщите об этом разработчику.', 'r');
     log(e.stack);
 });
-
-// Checking arguments
-program
-  .version(ver, '-v, --version')
-  .usage('[OPTIONS]...')
-  .option('-c, --countProfit', 'count your trade profit and exit')
-  .parse(process.argv);
-
-const options = program.opts();
-if(options && options.countProfit) {
-    log('Считаем заработок по продажам...', 'g');
-    await countTradeProfit();
-    log('Подсчёт окончен.', 'g');
-    await exit();
-}
 
 // Loading data
 const settings = global.settings;
@@ -78,22 +62,57 @@ if(settings.autoResponse == true) {
     enableAutoResponse();
 }
 
+if(settings.newMessageNotification == true) {
+    runner.registerNewIncomingMessageCallback(onNewIncomingMessage);
+}
+
+if(settings.greetingMessage == true && settings.greetingMessageText) {
+    await addUsersToFile();
+}
+
 enableUserDataUpdate(300 * 1000);
 
 // Start runner loop
-if(settings.alwaysOnline == true || settings.autoIssue == true || settings.autoResponse == true || settings.goodsStateCheck == true) {
+if(settings.alwaysOnline == true 
+    || settings.autoIssue == true 
+    || settings.autoResponse == true 
+    || settings.goodsStateCheck == true
+    || settings.newMessageNotification == true
+    || settings.newOrderNotification == true
+    || settings.greetingMessage == true) {
     await runner.start();
 }
 
 // Start telegram bot
+global.telegramBot = null;
 if(settings.telegramBot == true) {
-    const bot = new TelegramBot(settings.telegramToken);
-    bot.run();
+    global.telegramBot = new TelegramBot(settings.telegramToken);
+    global.telegramBot.run();
+}
+
+if(settings.telegramBot == true && settings.newMessageNotification == true) {
+    log(`Уведомления о новых сообщениях ${c.yellowBright('включены')}.`, 'g');
+}
+
+if(settings.telegramBot == true && settings.newOrderNotification == true) {
+    log(`Уведомления о новых заказах ${c.yellowBright('включены')}.`, 'g');
+}
+
+if(settings.telegramBot == true && settings.lotsRaiseNotification == true) {
+    log(`Уведомления о поднятии лотов ${c.yellowBright('включены')}.`, 'g');
+}
+
+if(settings.telegramBot == true && settings.deliveryNotification == true) {
+    log(`Уведомления о выдаче товара ${c.yellowBright('включены')}.`, 'g');
 }
 
 // Callbacks
 function onNewMessage() {
-    autoResponse();
+    processMessages();
+}
+
+function onNewIncomingMessage(message) {
+    processIncomingMessages(message);
 }
 
 function onNewOrder() {
