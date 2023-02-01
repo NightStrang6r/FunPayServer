@@ -292,10 +292,11 @@ async function addUsersToFile() {
         const bookmarks = await getChatBookmarks();
         if(!bookmarks) return;
 
-        let users = [];
+        let users = await load('data/other/newChatUsers.json');
         for(let i = 0; i < bookmarks.length; i++) {
             const chat = bookmarks[i];
-            users.push(chat.userName);
+            if(!users.includes(chat.userName))
+                users.push(chat.userName);
         }
 
         await updateFile(users, 'data/other/newChatUsers.json');

@@ -99,10 +99,10 @@ async function loadSettings() {
                 telegramBot: answers.telegramBot,
                 telegramToken: answers.telegramToken,
                 userName: answers.userName,
-                newMessageNotification: 0,
-                newOrderNotification: 0,
-                lotsRaiseNotification: 0,
-                deliveryNotification: 0,
+                newMessageNotification: answers.newMessageNotification,
+                newOrderNotification: answers.newOrderNotification,
+                lotsRaiseNotification: answers.lotsRaiseNotification,
+                deliveryNotification: answers.deliveryNotification,
                 watermark: "[ 🔥NightBot ]",
                 proxy: {
                     useProxy: 0,
@@ -333,7 +333,7 @@ async function askSettings() {
             newOrderNotification: 1,
             lotsRaiseNotification: 1,
             deliveryNotification: 1,
-            greetingMessage: 0,
+            greetingMessage: 1,
             greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
         }
     }
@@ -345,6 +345,8 @@ async function askSettings() {
         choices: ['Да', 'Нет']
     });
     
+    let question5 = {};
+
     if(question3.telegramBot == 'Да') {
         const question4 = await inq.prompt({
             name: 'telegramToken',
@@ -363,6 +365,30 @@ async function askSettings() {
         });
 
         telegramToken = question4.telegramToken;
+
+        question5 = await inq.prompt([{
+            name: 'newMessageNotification',
+            type: 'list',
+            message: `Включить мгновенные уведомления о новых сообщениях?`,
+            choices: ['Да', 'Нет']
+        },
+        {
+            name: 'newOrderNotification',
+            type: 'list',
+            message: `Включить уведомления о новых заказах?`,
+            choices: ['Да', 'Нет']
+        },
+        {
+            name: 'lotsRaiseNotification',
+            type: 'list',
+            message: `Включить уведомления о поднятии лотов?`,
+            choices: ['Да', 'Нет']
+        },{
+            name: 'deliveryNotification',
+            type: 'list',
+            message: `Включить уведомления о выдаче товара?`,
+            choices: ['Да', 'Нет']
+        }]);
     }
 
     const answers = await inq.prompt([{
@@ -394,6 +420,12 @@ async function askSettings() {
         type: 'list',
         message: `Включить функцию автоответа на команды (настройка в файле autoResponse.json)?`,
         choices: ['Да', 'Нет']
+    },
+    {
+        name: 'greetingMessage',
+        type: 'list',
+        message: `Включить функцию автоответа на первое сообщение (настройка в файле settings.txt)?`,
+        choices: ['Да', 'Нет']
     }]);
 
     const askSettings = {
@@ -407,7 +439,11 @@ async function askSettings() {
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? 1 : 0,
         autoIssue: (answers.autoIssue == 'Да') ? 1 : 0,
         autoResponse: (answers.autoResponse == 'Да') ? 1 : 0,
-        greetingMessage: 0,
+        newMessageNotification: (question5.newMessageNotification == 'Да') ? 1 : 0,
+        newOrderNotification: (question5.newOrderNotification == 'Да') ? 1 : 0,
+        lotsRaiseNotification: (question5.lotsRaiseNotification == 'Да') ? 1 : 0,
+        deliveryNotification: (question5.deliveryNotification == 'Да') ? 1 : 0,
+        greetingMessage: (answers.greetingMessage == 'Да') ? 1 : 0,
         greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
     }
 
