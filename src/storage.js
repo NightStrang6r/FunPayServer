@@ -143,8 +143,9 @@ function loadConfig() {
         autoIssue: Number(config.get('FunPay', 'autoDelivery')),
         autoResponse: Number(config.get('FunPay', 'autoResponse')),
         greetingMessage: Number(config.get('FunPay', 'greetingMessage')),
-        greetingMessageText: config.get('FunPay', 'greetingMessageText'),
+        greetingMessageText: config.get('FunPay', 'greetingMessageText').replace('\\n', '\n'),
         autoIssueTestCommand: Number(config.get('FunPay', 'autoDeliveryTestCommand')),
+        watermark: config.get('FunPay', 'waterMark'),
         telegramBot: Number(config.get('Telegram', 'enabled')),
         telegramToken: config.get('Telegram', 'token'),
         userName: config.get('Telegram', 'userName'),
@@ -152,7 +153,6 @@ function loadConfig() {
         newOrderNotification: Number(config.get('Telegram', 'newOrderNotification')),
         lotsRaiseNotification: Number(config.get('Telegram', 'lotsRaiseNotification')),
         deliveryNotification: Number(config.get('Telegram', 'deliveryNotification')),
-        watermark: "[ 🔥NightBot ]",
         proxy: {
             useProxy: Number(config.get('Proxy', 'enabled')),
             host: config.get('Proxy', 'host'),

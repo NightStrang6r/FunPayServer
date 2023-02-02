@@ -32,7 +32,9 @@ async function processMessages() {
             for(let i = 0; i < autoRespData.length; i++) {
                 if(autoRespData[i].command && chat.message.toLowerCase() == autoRespData[i].command.toLowerCase()) {
                     log(`Команда: ${c.yellowBright(autoRespData[i].command)} для пользователя ${c.yellowBright(chat.userName)}.`);
-                    await sendMessage(chat.node, autoRespData[i].response);
+                    let smRes = await sendMessage(chat.node, autoRespData[i].response);
+                    if(smRes)
+                        log(`Ответ на команду отправлен.`, `g`);
                     break;
                 }
 
@@ -49,7 +51,9 @@ async function processMessages() {
                 const goodName = chat.message.split(`"`)[1];
                 if(!goodName) {
                     log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}: товар не указан.`, `c`);
-                    await sendMessage(chat.node, `Товар не указан. Укажите название предложения в кавычках (").`);
+                    let smRes = await sendMessage(chat.node, `Товар не указан. Укажите название предложения в кавычках (").`);
+                    if(smRes)
+                        log(`Ответ на команду отправлен.`, `g`);
                     break;
                 }
 
@@ -58,12 +62,16 @@ async function processMessages() {
                 let issueResult = await issueGood(chat.node, chat.userName, goodName, 'node');
 
                 if(!issueResult) {
-                    await sendMessage(chat.node, `Товара "${goodName}" нет в списке автовыдачи`);
+                    let smRes = await sendMessage(chat.node, `Товара "${goodName}" нет в списке автовыдачи`);
+                    if(smRes) 
+                        log(`Ответ на команду отправлен.`, `g`);
                     break;
                 }
 
                 if(issueResult == 'notInStock') {
-                    await sendMessage(chat.node, `Товар закончился`);
+                    let smRes = await sendMessage(chat.node, `Товар закончился`);
+                    if(smRes)
+                        log(`Ответ на команду отправлен.`, `g`);
                     break;
                 }
             }
@@ -90,8 +98,14 @@ async function processIncomingMessages(message) {
 
         if(!newChatUsers.includes(message.user)) {
             newChatUsers.push(message.user);
+
+            let msg = settings.greetingMessageText;
+            msg = msg.replace('{name}', message.user);
+
             await updateFile(newChatUsers, 'data/other/newChatUsers.json');
-            await sendMessage(message.node, settings.greetingMessageText);
+            let smRes = await sendMessage(message.node, msg);
+            if(smRes)
+                log(`Приветственное сообщение отправлено пользователю ${message.user}`, `g`);
         }
     }
 }
@@ -188,7 +202,7 @@ async function sendMessage(node, message, customNode = false) {
 
         if(json.response && json.response.error == null) {
             log(`Сообщение отправлено, чат node ${c.yellowBright(newNode)}.`, 'g');
-            result = true;
+            result = json;
         } else {
             log(`Не удалось отправить сообщение, node: "${newNode}", сообщение: "${reqMessage}"`, 'r');
             log(`Запрос:`);
