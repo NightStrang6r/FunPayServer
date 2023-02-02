@@ -290,7 +290,8 @@ async function loadAutoIssueFile() {
 }
 
 function replaceAll(string, find, replace) {
-    return string.replace(new RegExp(find, 'g'), replace);
+    while(string.includes(find)) string = string.replace(find, replace);
+    return string;
 }
 
 async function askSettings() {
