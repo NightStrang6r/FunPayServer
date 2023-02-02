@@ -10,6 +10,9 @@ class TelegramBot {
 
         process.once('SIGINT', () => this.bot.stop('SIGINT'));
         process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
+        this.bot.catch((err) => {
+            log(`Ошибка бота telegram: ${err}`, 'r');
+        })
     }
 
     async run() {
@@ -348,7 +351,7 @@ class TelegramBot {
     }
 
     async getAutoIssueFile(ctx) {
-        let contents = await getConst('autoIssueFilePath');
+        let contents = getConst('autoIssueFilePath');
 
         ctx.replyWithDocument({
             source: contents,
@@ -360,12 +363,23 @@ class TelegramBot {
         console.log(ctx);
     }
 
+    getChatID() {
+        let chatId = getConst('chatId');
+        if(!chatId) {
+            log(`Напишите своему боту в Telegram, чтобы он мог отправлять вам уведомления.`);
+            return false;
+        }
+        return chatId;
+    }
+
     async sendNewMessageNotification(message) {
         let msg = `💬 <b>Новое сообщение</b> от пользователя <b><i>${message.user}</i></b>.\n\n`;
         msg += `${message.content}\n\n`;
         msg += `<i>${message.time}</i> | <a href="https://funpay.com/chat/?node=${message.node}">Перейти в чат</a>`
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
@@ -376,7 +390,9 @@ class TelegramBot {
         msg += `👤 <b>Покупатель:</b> <a href="https://funpay.com/users/${order.buyerId}/">${order.buyerName}</a>\n`;
         msg += `🛍️ <b>Товар:</b> <code>${order.name}</code>`;
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
@@ -386,7 +402,9 @@ class TelegramBot {
         let msg = `⬆️ Предложения в категории <a href="https://funpay.com/lots/${category.node_id}/trade">${category.name}</a> подняты.\n`;
         msg += `⌚ Следующее поднятие: <b><i>${nextTimeMsg}</i></b>`;
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
@@ -396,7 +414,9 @@ class TelegramBot {
         let msg = `📦 Товар <code>${productName}</code> выдан покупателю <b><i>${buyerName}</i></b> с сообщением:\n\n`;
         msg += `${message}`;
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });

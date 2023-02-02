@@ -177,7 +177,7 @@ async function saveConfig(settings) {
     data = setValue(data, 'FunPay', 'autoDelivery', settings.autoIssue);
     data = setValue(data, 'FunPay', 'autoResponse', settings.autoResponse);
     data = setValue(data, 'FunPay', 'greetingMessage', settings.greetingMessage);
-    data = setValue(data, 'FunPay', 'greetingMessageText', settings.greetingMessageText);
+    data = setValue(data, 'FunPay', 'greetingMessageText', replaceAll(settings.greetingMessageText, '\n', '\\n'));
     data = setValue(data, 'FunPay', 'autoDeliveryTestCommand', settings.autoIssueTestCommand);
     data = setValue(data, 'FunPay', 'waterMark', settings.watermark);
     data = setValue(data, 'Telegram', 'enabled', settings.telegramBot);
@@ -268,9 +268,7 @@ function getConst(name) {
             if(!global.settings.chatId)  {
                 global.settings.chatId = fs.readFileSync(`${otherPath}/telegram.txt`, 'utf8');
 
-                if(isNaN(global.settings.chatId)) {
-                    throw new Error('Напишите своему боту в Telegram, чтобы он мог отправлять вам уведомления.');
-                }
+                return false;
             }
             return global.settings.chatId;
     }
