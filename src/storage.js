@@ -143,7 +143,7 @@ function loadConfig() {
         autoIssue: Number(config.get('FunPay', 'autoDelivery')),
         autoResponse: Number(config.get('FunPay', 'autoResponse')),
         greetingMessage: Number(config.get('FunPay', 'greetingMessage')),
-        greetingMessageText: config.get('FunPay', 'greetingMessageText').replace('\\n', '\n'),
+        greetingMessageText: replaceAll(config.get('FunPay', 'greetingMessageText'), '\\n', '\n'),
         autoIssueTestCommand: Number(config.get('FunPay', 'autoDeliveryTestCommand')),
         watermark: config.get('FunPay', 'waterMark'),
         telegramBot: Number(config.get('Telegram', 'enabled')),
@@ -287,6 +287,10 @@ function setConst(name, value) {
 
 async function loadAutoIssueFile() {
     return await fs.readFile(`${_dirname}/data/configs/delivery.json`, 'utf8');
+}
+
+function replaceAll(string, find, replace) {
+    return string.replace(new RegExp(find, 'g'), replace);
 }
 
 async function askSettings() {
@@ -453,7 +457,7 @@ async function askSettings() {
         lotsRaiseNotification: (question5.lotsRaiseNotification == 'Да') ? 1 : 0,
         deliveryNotification: (question5.deliveryNotification == 'Да') ? 1 : 0,
         greetingMessage: (answers.greetingMessage == 'Да') ? 1 : 0,
-        greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
+        greetingMessageText: 'Привет, {name}!\nПродавец скоро ответит на твоё сообщение.'
     }
 
     console.log();
