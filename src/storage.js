@@ -281,6 +281,7 @@ function setConst(name, value) {
         case 'chatId':
             global.settings.chatId = value;
             fs.writeFileSync(`${otherPath}/telegram.txt`, value.toString());
+            log(`Чат для уведомлений Telegram успешно обновлен.`, `g`);
             break;
     }
 }
