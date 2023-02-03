@@ -265,12 +265,14 @@ function getConst(name) {
         case 'api': return 'https://funpay.com';
         case 'autoIssueFilePath': return `${dataPath}/configs/delivery.json`;
         case 'chatId': 
-            if(!global.settings.chatId)  {
+            if(isNaN(global.settings.chatId))  {
                 global.settings.chatId = fs.readFileSync(`${otherPath}/telegram.txt`, 'utf8');
 
-                return false;
+                if(isNaN(global.settings.chatId)) return false;
+                return global.settings.chatId;
+            } else {
+                return global.settings.chatId;
             }
-            return global.settings.chatId;
     }
 }
 

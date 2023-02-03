@@ -105,7 +105,7 @@ async function processIncomingMessages(message) {
             await updateFile(newChatUsers, 'data/other/newChatUsers.json');
             let smRes = await sendMessage(message.node, msg);
             if(smRes)
-                log(`Приветственное сообщение отправлено пользователю ${message.user}`, `g`);
+                log(`Приветственное сообщение отправлено пользователю ${c.yellowBright(message.user)}.`, `g`);
         }
     }
 }

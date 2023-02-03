@@ -130,7 +130,7 @@ class TelegramBot {
 
     isUserAuthed(ctx) {
         if(global.settings.userName == ctx.update.message.from.username) {
-            if(!global.settings.chatId) setConst('chatId', ctx.update.message.chat.id);
+            if(!getConst('chatId')) setConst('chatId', ctx.update.message.chat.id);
             return true;
         }
         return false;
