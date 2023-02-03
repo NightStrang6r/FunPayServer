@@ -88,8 +88,13 @@ async function processMessages() {
 async function processIncomingMessages(message) {
     // Notification
     if(global.telegramBot && settings.newMessageNotification) {
-        if(!message.content.includes(settings.watermark))
+        if(settings.watermark) {
+            if(!message.content.includes(settings.watermark)) {
+                global.telegramBot.sendNewMessageNotification(message);
+            }
+        } else {
             global.telegramBot.sendNewMessageNotification(message);
+        }   
     }
 
     // If new chat
