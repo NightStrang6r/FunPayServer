@@ -49,7 +49,10 @@ async function checkForNewOrders() {
             }
     
             log(`Новый заказ ${c.yellowBright(order.id)} от покупателя ${c.yellowBright(order.buyerName)} на сумму ${c.yellowBright(order.price)} ₽.`);
-            await issueGood(order.buyerId, order.buyerName, order.name, 'id');
+
+            for(let i = 0; i < order.count; i++) {
+                await issueGood(order.buyerId, order.buyerName, order.name, 'id');
+            }
         }
         
         backupOrders = clone(orders.backupOrders);
@@ -252,6 +255,20 @@ async function getOrders() {
             const price = Number(order.querySelector(".tc-price").firstChild.textContent);
             const unit = order.querySelector(".tc-price").querySelector("span").innerHTML;
 
+            const sections = name.split(',');
+            let count = 1;
+            
+            if(sections.length > 1) {
+                const section = sections[sections.length - 1];
+                if(section.includes('шт.')) {
+                    count = Number(section.split('шт.')[0]);
+
+                    if(!count || isNaN(count)) {
+                        count = 1;
+                    }
+                }
+            }
+
             result.push({
                 id: id,
                 name: name,
@@ -259,7 +276,8 @@ async function getOrders() {
                 buyerName: buyerName,
                 status: status,
                 price: price,
-                unit: unit
+                unit: unit,
+                count: count
             });
         }
 
