@@ -35,6 +35,8 @@ class TelegramBot {
         this.waitingForLotDelete = false;
         this.waitingForLotName = false;
         this.waitingForLotContent = false;
+        this.waitingForDeliveryFile = false;
+
         this.lotType = '';
         this.lotName = '';
         this.lotContent = '';
@@ -43,6 +45,7 @@ class TelegramBot {
 
     setupListeners() {
         this.bot.on('text', (ctx) => this.onMessage(ctx));
+        this.bot.on('document', (ctx) => this.onMessage(ctx));
         this.bot.on('inline_query', (ctx) => this.onInlineQuery(ctx));
     }
     
@@ -92,8 +95,13 @@ class TelegramBot {
                 return;
             }
 
-            if(msg == '📄 Получить файл автовыдачи 📄') {
+            if(msg == '⬇️ Получить файл автовыдачи ⬇️') {
                 await this.getAutoIssueFile(ctx);
+                return;
+            }
+
+            if(msg == '⬆️ Загрузить файл автовыдачи ⬆️') {
+                this.uploadAutoIssueFile(ctx);
                 return;
             }
 
@@ -117,11 +125,17 @@ class TelegramBot {
                 return;
             }
 
+            if(this.waitingForDeliveryFile) {
+                await this.onUploadDeliveryFile(ctx);
+                return;
+            }
+
             this.waitingForLotName = false;
             this.waitingForLotContent = false;
             this.waitingForLotDelete = false;
+            this.waitingForDeliveryFile = false;
             
-            ctx.reply('Меню', this.mainKeyboard.reply());
+            ctx.reply('🏠 Меню', this.mainKeyboard.reply());
         } catch (err) {
             log(`Ошибка при обработке telegram сообщения: ${err}`, 'r');
             ctx.reply(`Воу! Я словил ошибку... Хз как так получилось, но вот всё, что мне известно: ${err}`, this.mainKeyboard.reply());
@@ -149,7 +163,7 @@ class TelegramBot {
     getEditGoodsKeyboard() {
         const keyboard = Keyboard.make([
             ['☑️ Добавить товар ☑️', '📛 Удалить товар 📛'],
-            ['📄 Получить файл автовыдачи 📄'],
+            ['⬇️ Получить файл автовыдачи ⬇️', '⬆️ Загрузить файл автовыдачи ⬆️'],
             ['🔙 Назад 🔙']
         ]);
 
@@ -265,6 +279,7 @@ class TelegramBot {
         this.waitingForLotName = false;
         this.waitingForLotContent = false;
         this.waitingForLotDelete = false;
+        this.waitingForDeliveryFile = false;
 
         if(this.products.length > 0) {
             let goods = await load('data/configs/delivery.json');
@@ -279,7 +294,7 @@ class TelegramBot {
             this.products = [];
         }
 
-        ctx.reply('Меню', this.mainKeyboard.reply());
+        ctx.reply('🏠 Меню', this.mainKeyboard.reply());
     }
 
     async saveLotName(ctx) {
@@ -357,6 +372,44 @@ class TelegramBot {
             source: contents,
             filename: 'delivery.json'
         }).catch(function(error) { log(error); })
+    }
+
+    uploadAutoIssueFile(ctx) {
+        this.waitingForDeliveryFile = true;
+        ctx.reply(`Окей, пришли мне файл автовыдачи в формате JSON.`, this.backKeyboard.reply());
+    }
+
+    async onUploadDeliveryFile(ctx) {
+        let file = ctx.update.message.document;
+        let file_id = file.file_id;
+        let file_name = file.file_name;
+        let contents = null;
+
+        if(file_name != 'delivery.json') {
+            ctx.reply(`❌ Неверный формат файла.`, this.mainKeyboard.reply());
+            return;
+        }
+
+        try {
+            ctx.reply(`♻️ Загружаю файл...`);
+
+            let file_path = await this.bot.telegram.getFileLink(file_id);
+            let fileContents = await fetch(file_path);
+            contents = await fileContents.text();
+        } catch(e) {
+            ctx.reply(`❌ Не удалось загрузить файл.`, this.mainKeyboard.reply());
+            return;
+        }
+
+        try {
+            ctx.reply(`♻️ Проверяю валидность...`);
+
+            let json = JSON.parse(contents);
+            await updateFile(json, 'data/configs/delivery.json');
+            ctx.reply(`✔️ Окей, обновил файл автовыдачи.`, this.editGoodsKeyboard.reply());
+        } catch(e) {
+            ctx.reply(`❌ Неверный формат JSON.`, this.mainKeyboard.reply());
+        }
     }
 
     async onInlineQuery(ctx) {

@@ -48,7 +48,8 @@ async function processMessages() {
             // Custom commands
 
             if(settings.autoIssueTestCommand == true && chat.message.includes("!автовыдача")) {
-                const goodName = chat.message.split(`"`)[1];
+                const goodName = chat.message.split(`&quot;`)[1];
+
                 if(!goodName) {
                     log(`Команда: ${c.yellowBright('!автовыдача')} для пользователя ${c.yellowBright(chat.userName)}: товар не указан.`, `c`);
                     let smRes = await sendMessage(chat.node, `Товар не указан. Укажите название предложения в кавычках (").`);
@@ -94,7 +95,7 @@ async function processIncomingMessages(message) {
             }
         } else {
             global.telegramBot.sendNewMessageNotification(message);
-        }   
+        }
     }
 
     // If new chat
@@ -108,9 +109,12 @@ async function processIncomingMessages(message) {
             msg = msg.replace('{name}', message.user);
 
             await updateFile(newChatUsers, 'data/other/newChatUsers.json');
-            let smRes = await sendMessage(message.node, msg);
-            if(smRes)
-                log(`Приветственное сообщение отправлено пользователю ${c.yellowBright(message.user)}.`, `g`);
+
+            if(!isSystemMessage(message.content)) {
+                let smRes = await sendMessage(message.node, msg);
+                if(smRes)
+                    log(`Приветственное сообщение отправлено пользователю ${c.yellowBright(message.user)}.`, `g`);
+            }
         }
     }
 }
@@ -322,6 +326,16 @@ async function addUsersToFile() {
     } catch(err) {
         log(`Ошибка при получении списка пользователей: ${err}`, 'e');
     }
+}
+
+function isSystemMessage(message) {
+    if(!message) return false;
+
+    if(message.includes('Покупатель') || message.includes('The buyer')) {
+        return true;
+    }
+
+    return false;
 }
 
 export { 
