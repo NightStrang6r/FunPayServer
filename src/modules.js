@@ -56,6 +56,18 @@ t = Date.now();
 global.clone = (await import('clone')).default;
 if(logTime) console.log(`Clone loaded in ${Date.now() - t}ms.`);
 
+t = Date.now();
+global.imap_simple = (await import('imap-simple')).default;
+if(logTime) console.log(`Imap-simple loaded in ${Date.now() - t}ms.`);
+
+t = Date.now();
+global.mailparser = (await import('mailparser')).default;
+if(logTime) console.log(`Mailparser loaded in ${Date.now() - t}ms.`);
+
+t = Date.now();
+global.lodash = (await import('lodash')).default;
+if(logTime) console.log(`Lodash loaded in ${Date.now() - t}ms.`);
+
 if(logTime) console.log(`Modules loaded in ${Date.now() - time}ms.`);
 
 // Clear console
@@ -75,6 +87,7 @@ global.account = await import('./account.js');
 global.categories = await import('./categories.js');
 global.goods = await import('./goods.js');
 global.activity = await import('./activity.js');
+global.email = await import('./email.js');
 global.chat = await import('./chat.js');
 global.sales = await import('./sales.js');
 

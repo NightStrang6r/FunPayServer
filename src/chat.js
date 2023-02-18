@@ -6,6 +6,7 @@ const parseDOM = global.DOMParser;
 const { load, getConst, updateFile } = global.storage;
 const { getRandomTag } = global.activity;
 
+
 // CONSTANTS
 const settings = global.settings;
 const autoRespData = await load('data/configs/autoResponse.json');
@@ -75,6 +76,72 @@ async function processMessages() {
                         log(`Ответ на команду отправлен.`, `g`);
                     break;
                 }
+            }
+
+            if(chat.message.toLowerCase() == "!код" || chat.message.toLowerCase() == `"!код"`) {
+                log(`Команда: ${c.yellowBright('!код')} для пользователя ${c.yellowBright(chat.userName)}.`, `c`);
+                const { searchOrdersByUserName } = global.sales;
+                const orders = await searchOrdersByUserName(chat.userName);
+
+                if(orders.length == 0) {
+                    let smRes = await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`);
+                    if(smRes)
+                        log(`Ответ на команду отправлен.`, `g`);
+                    break;
+                }
+
+                const { getProduct } = global.sales;
+                const order = orders[0];
+                const good = await getProduct(order.name);
+                const delivered = good.delivered;
+                let alreadyDelivered = false;
+
+                if(!delivered) {
+                    let smRes = await sendMessage(chat.node, `На данный момент нет соответствующих заказов для вызова данной команды.`);
+                    if(smRes)
+                        log(`Ответ на команду отправлен.`, `g`);
+                    break;
+                }
+            
+                for(let i = 0; i < delivered.length; i++) {
+                    if(delivered[i].name == order.buyerName && delivered[i].order == order.id) {
+                        alreadyDelivered = true;
+                        break;
+                    }
+                }
+    
+                if(!alreadyDelivered) {
+                    //sendMessage(chat.node, `Получаем код. Пожалуйста, подождите.`);
+                    const { getSteamCode } = global.email;
+                    const codeResult = await getSteamCode(good.email, good.pass, good.server);
+                    let code = false;
+
+                    if(codeResult.error != true) {
+                        code = codeResult.code;
+                    } else {
+                        if(codeResult.msg == "no-new-mails") {
+                            let smRes = await sendMessage(chat.node, `На данный момент новых кодов нет. Убедитесь, что вошли в нужный аккаунт в нужном лаунчере, либо попробуйте ещё раз через минуту.`);
+                            if(smRes)
+                                log(`Ответ на команду отправлен.`, `g`);
+
+                            break;
+                        }
+                    }
+
+                    if(code) {
+                        const res = await sendMessage(chat.node, `Код: ${code}`);
+
+                        if(res) {
+                            let { addDeliveredName } = global.sales;
+                            await addDeliveredName(order.name, order.buyerName, order.id);
+                        }
+                    }
+                } else {
+                    let smRes = await sendMessage(chat.node, `К сожалению, вы уже получали код. Если у вас возникли проблемы со входом, напишите об этом сюда в чат. Продавец ответит вам при первой же возможности.`);
+                    if(smRes)
+                        log(`Ответ на команду отправлен.`, `g`);
+                }
+                break;
             }
         }
     } catch (err) {

@@ -1,6 +1,6 @@
 {
   "name": "funpayserver",
-  "version": "0.5.3",
+  "version": "0.5.3a",
   "description": "CLI app for auto-managing your FunPay account",
   "main": "src/index.js",
   "dependencies": {
@@ -10,7 +10,9 @@
     "configparser": "^0.3.10",
     "fs-extra": "^10.1.0",
     "https-proxy-agent": "^5.0.1",
+    "imap-simple": "^5.1.0",
     "inquirer": "^9.1.0",
+    "mailparser": "^3.6.3",
     "node-fetch": "^3.2.1",
     "node-html-parser": "^6.1.4",
     "project-version": "^2.0.0",

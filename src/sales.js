@@ -127,13 +127,13 @@ async function issueGood(buyerIdOrNode, buyerName, goodName, type = 'id') {
     return result;
 }
 
-async function getGood(orderName) {
+async function getProduct(orderName) {
     let result = false;
     try {
         goods = await load(goodsfilePath);
     
         for(let i = 0; i < goods.length; i++) {
-            if(orderName == goods[i].name) {
+            if(orderName.includes(goods[i].name)) {
                 result = goods[i];
                 break;
             }
@@ -150,7 +150,7 @@ async function addDeliveredName(orderName, name, orderId) {
         goods = await load(goodsfilePath);
         
         for(let i = 0; i < goods.length; i++) {
-            if(orderName === goods[i].name) {
+            if(orderName.includes(goods[i].name)) {
                 if(goods[i].delivered == undefined) {
                     goods[i].delivered = [];
                 }
@@ -158,6 +158,7 @@ async function addDeliveredName(orderName, name, orderId) {
                 goods[i].delivered.push({
                     name: name, order: orderId
                 });
+                
                 await updateFile(goods, goodsfilePath);
                 break;
             }
@@ -316,4 +317,4 @@ async function getLotNames() {
     }
 }
 
-export { getOrders, getNewOrders, issueGood, getLotNames, searchOrdersByUserName, checkForNewOrders, getGood, addDeliveredName, enableAutoIssue };
+export { getOrders, getNewOrders, issueGood, getLotNames, searchOrdersByUserName, checkForNewOrders, getProduct, addDeliveredName, enableAutoIssue };
