@@ -62,7 +62,7 @@ if(settings.autoResponse == true) {
     enableAutoResponse();
 }
 
-if(settings.newMessageNotification == true) {
+if(settings.newMessageNotification == true && settings.greetingMessage == true) {
     runner.registerNewIncomingMessageCallback(onNewIncomingMessage);
 }
 

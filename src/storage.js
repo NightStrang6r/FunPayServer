@@ -143,8 +143,9 @@ function loadConfig() {
         autoIssue: Number(config.get('FunPay', 'autoDelivery')),
         autoResponse: Number(config.get('FunPay', 'autoResponse')),
         greetingMessage: Number(config.get('FunPay', 'greetingMessage')),
-        greetingMessageText: config.get('FunPay', 'greetingMessageText'),
+        greetingMessageText: replaceAll(config.get('FunPay', 'greetingMessageText'), '\\n', '\n'),
         autoIssueTestCommand: Number(config.get('FunPay', 'autoDeliveryTestCommand')),
+        watermark: config.get('FunPay', 'waterMark'),
         telegramBot: Number(config.get('Telegram', 'enabled')),
         telegramToken: config.get('Telegram', 'token'),
         userName: config.get('Telegram', 'userName'),
@@ -152,7 +153,6 @@ function loadConfig() {
         newOrderNotification: Number(config.get('Telegram', 'newOrderNotification')),
         lotsRaiseNotification: Number(config.get('Telegram', 'lotsRaiseNotification')),
         deliveryNotification: Number(config.get('Telegram', 'deliveryNotification')),
-        watermark: "[ 🔥NightBot ]",
         proxy: {
             useProxy: Number(config.get('Proxy', 'enabled')),
             host: config.get('Proxy', 'host'),
@@ -168,7 +168,6 @@ function loadConfig() {
 
 async function saveConfig(settings) {
     let data = await fs.readFile(`${_dirname}/s.example`, 'utf-8');
-    console.log(data.split('\n'));
     
     data = setValue(data, 'FunPay', 'golden_key', settings.golden_key);
     data = setValue(data, 'FunPay', 'user_agent', settings.userAgent);
@@ -178,7 +177,7 @@ async function saveConfig(settings) {
     data = setValue(data, 'FunPay', 'autoDelivery', settings.autoIssue);
     data = setValue(data, 'FunPay', 'autoResponse', settings.autoResponse);
     data = setValue(data, 'FunPay', 'greetingMessage', settings.greetingMessage);
-    data = setValue(data, 'FunPay', 'greetingMessageText', settings.greetingMessageText);
+    data = setValue(data, 'FunPay', 'greetingMessageText', replaceAll(settings.greetingMessageText, '\n', '\\n'));
     data = setValue(data, 'FunPay', 'autoDeliveryTestCommand', settings.autoIssueTestCommand);
     data = setValue(data, 'FunPay', 'waterMark', settings.watermark);
     data = setValue(data, 'Telegram', 'enabled', settings.telegramBot);
@@ -266,14 +265,14 @@ function getConst(name) {
         case 'api': return 'https://funpay.com';
         case 'autoIssueFilePath': return `${dataPath}/configs/delivery.json`;
         case 'chatId': 
-            if(!global.settings.chatId)  {
+            if(isNaN(global.settings.chatId))  {
                 global.settings.chatId = fs.readFileSync(`${otherPath}/telegram.txt`, 'utf8');
 
-                if(isNaN(global.settings.chatId)) {
-                    throw new Error('Напишите своему боту в Telegram, чтобы он мог отправлять вам уведомления.');
-                }
+                if(isNaN(global.settings.chatId)) return false;
+                return global.settings.chatId;
+            } else {
+                return global.settings.chatId;
             }
-            return global.settings.chatId;
     }
 }
 
@@ -282,12 +281,18 @@ function setConst(name, value) {
         case 'chatId':
             global.settings.chatId = value;
             fs.writeFileSync(`${otherPath}/telegram.txt`, value.toString());
+            log(`Чат для уведомлений Telegram успешно обновлен.`, `g`);
             break;
     }
 }
 
 async function loadAutoIssueFile() {
     return await fs.readFile(`${_dirname}/data/configs/delivery.json`, 'utf8');
+}
+
+function replaceAll(string, find, replace) {
+    while(string.includes(find)) string = string.replace(find, replace);
+    return string;
 }
 
 async function askSettings() {
@@ -309,7 +314,7 @@ async function askSettings() {
     {
         name: 'userAgent',
         type: 'input',
-        message: `Введите User-Agent браузера, с которого выполнялся вход на сайт FunPay. Его можно получить тут: https://n5m.ru/usagent.html`
+        message: `Введите User-Agent браузера, с которого выполнялся вход на сайт FunPay. Его можно получить тут: https://bit.ly/3l48x8b`
     }]);
 
     const question2 = await inq.prompt({
@@ -328,7 +333,7 @@ async function askSettings() {
             userAgent: question1.userAgent,
             telegramBot: 0,
             telegramToken: telegramToken,
-            userName: '',
+            userName: 'MyTelegramLogin',
             alwaysOnline: 1,
             lotsRaise: 1,
             goodsStateCheck: 1,
@@ -372,6 +377,11 @@ async function askSettings() {
         telegramToken = question4.telegramToken;
 
         question5 = await inq.prompt([{
+            name: 'userName',
+            type: 'input',
+            message: `Введите логин Telegram аккаунта, который будет использоваться для управления ботом (без @):`
+        },
+        {
             name: 'newMessageNotification',
             type: 'list',
             message: `Включить мгновенные уведомления о новых сообщениях?`,
@@ -438,7 +448,7 @@ async function askSettings() {
         userAgent: question1.userAgent,
         telegramBot: (question3.telegramBot == 'Да') ? 1 : 0,
         telegramToken: telegramToken,
-        userName: '',
+        userName: (question3.telegramBot == 'Да' && question5.userName) ? question5.userName : 'MyTelegramLogin',
         alwaysOnline: (answers.alwaysOnline == 'Да') ? 1 : 0,
         lotsRaise: (answers.lotsRaise == 'Да') ? 1 : 0,
         goodsStateCheck: (answers.goodsStateCheck == 'Да') ? 1 : 0,
@@ -449,7 +459,7 @@ async function askSettings() {
         lotsRaiseNotification: (question5.lotsRaiseNotification == 'Да') ? 1 : 0,
         deliveryNotification: (question5.deliveryNotification == 'Да') ? 1 : 0,
         greetingMessage: (answers.greetingMessage == 'Да') ? 1 : 0,
-        greetingMessageText: 'Привет! Продавец скоро ответит на твоё сообщение.'
+        greetingMessageText: 'Привет, {name}!\nПродавец скоро ответит на твоё сообщение.'
     }
 
     console.log();

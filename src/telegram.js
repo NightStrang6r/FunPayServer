@@ -10,6 +10,9 @@ class TelegramBot {
 
         process.once('SIGINT', () => this.bot.stop('SIGINT'));
         process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
+        this.bot.catch((err) => {
+            log(`Ошибка бота telegram: ${err}`, 'r');
+        })
     }
 
     async run() {
@@ -32,6 +35,8 @@ class TelegramBot {
         this.waitingForLotDelete = false;
         this.waitingForLotName = false;
         this.waitingForLotContent = false;
+        this.waitingForDeliveryFile = false;
+
         this.lotType = '';
         this.lotName = '';
         this.lotContent = '';
@@ -40,6 +45,7 @@ class TelegramBot {
 
     setupListeners() {
         this.bot.on('text', (ctx) => this.onMessage(ctx));
+        this.bot.on('document', (ctx) => this.onMessage(ctx));
         this.bot.on('inline_query', (ctx) => this.onInlineQuery(ctx));
     }
     
@@ -89,8 +95,13 @@ class TelegramBot {
                 return;
             }
 
-            if(msg == '📄 Получить файл автовыдачи 📄') {
+            if(msg == '⬇️ Получить файл автовыдачи ⬇️') {
                 await this.getAutoIssueFile(ctx);
+                return;
+            }
+
+            if(msg == '⬆️ Загрузить файл автовыдачи ⬆️') {
+                this.uploadAutoIssueFile(ctx);
                 return;
             }
 
@@ -114,11 +125,17 @@ class TelegramBot {
                 return;
             }
 
+            if(this.waitingForDeliveryFile) {
+                await this.onUploadDeliveryFile(ctx);
+                return;
+            }
+
             this.waitingForLotName = false;
             this.waitingForLotContent = false;
             this.waitingForLotDelete = false;
+            this.waitingForDeliveryFile = false;
             
-            ctx.reply('Меню', this.mainKeyboard.reply());
+            ctx.reply('🏠 Меню', this.mainKeyboard.reply());
         } catch (err) {
             log(`Ошибка при обработке telegram сообщения: ${err}`, 'r');
             ctx.reply(`Воу! Я словил ошибку... Хз как так получилось, но вот всё, что мне известно: ${err}`, this.mainKeyboard.reply());
@@ -127,7 +144,7 @@ class TelegramBot {
 
     isUserAuthed(ctx) {
         if(global.settings.userName == ctx.update.message.from.username) {
-            if(!global.settings.chatId) setConst('chatId', ctx.update.message.chat.id);
+            if(!getConst('chatId')) setConst('chatId', ctx.update.message.chat.id);
             return true;
         }
         return false;
@@ -146,7 +163,7 @@ class TelegramBot {
     getEditGoodsKeyboard() {
         const keyboard = Keyboard.make([
             ['☑️ Добавить товар ☑️', '📛 Удалить товар 📛'],
-            ['📄 Получить файл автовыдачи 📄'],
+            ['⬇️ Получить файл автовыдачи ⬇️', '⬆️ Загрузить файл автовыдачи ⬆️'],
             ['🔙 Назад 🔙']
         ]);
 
@@ -262,6 +279,7 @@ class TelegramBot {
         this.waitingForLotName = false;
         this.waitingForLotContent = false;
         this.waitingForLotDelete = false;
+        this.waitingForDeliveryFile = false;
 
         if(this.products.length > 0) {
             let goods = await load('data/configs/delivery.json');
@@ -276,7 +294,7 @@ class TelegramBot {
             this.products = [];
         }
 
-        ctx.reply('Меню', this.mainKeyboard.reply());
+        ctx.reply('🏠 Меню', this.mainKeyboard.reply());
     }
 
     async saveLotName(ctx) {
@@ -348,7 +366,7 @@ class TelegramBot {
     }
 
     async getAutoIssueFile(ctx) {
-        let contents = await getConst('autoIssueFilePath');
+        let contents = getConst('autoIssueFilePath');
 
         ctx.replyWithDocument({
             source: contents,
@@ -356,8 +374,55 @@ class TelegramBot {
         }).catch(function(error) { log(error); })
     }
 
+    uploadAutoIssueFile(ctx) {
+        this.waitingForDeliveryFile = true;
+        ctx.reply(`Окей, пришли мне файл автовыдачи в формате JSON.`, this.backKeyboard.reply());
+    }
+
+    async onUploadDeliveryFile(ctx) {
+        let file = ctx.update.message.document;
+        let file_id = file.file_id;
+        let file_name = file.file_name;
+        let contents = null;
+
+        if(file_name != 'delivery.json') {
+            ctx.reply(`❌ Неверный формат файла.`, this.mainKeyboard.reply());
+            return;
+        }
+
+        try {
+            ctx.reply(`♻️ Загружаю файл...`);
+
+            let file_path = await this.bot.telegram.getFileLink(file_id);
+            let fileContents = await fetch(file_path);
+            contents = await fileContents.text();
+        } catch(e) {
+            ctx.reply(`❌ Не удалось загрузить файл.`, this.mainKeyboard.reply());
+            return;
+        }
+
+        try {
+            ctx.reply(`♻️ Проверяю валидность...`);
+
+            let json = JSON.parse(contents);
+            await updateFile(json, 'data/configs/delivery.json');
+            ctx.reply(`✔️ Окей, обновил файл автовыдачи.`, this.editGoodsKeyboard.reply());
+        } catch(e) {
+            ctx.reply(`❌ Неверный формат JSON.`, this.mainKeyboard.reply());
+        }
+    }
+
     async onInlineQuery(ctx) {
         console.log(ctx);
+    }
+
+    getChatID() {
+        let chatId = getConst('chatId');
+        if(!chatId) {
+            log(`Напишите своему боту в Telegram, чтобы он мог отправлять вам уведомления.`);
+            return false;
+        }
+        return chatId;
     }
 
     async sendNewMessageNotification(message) {
@@ -365,7 +430,9 @@ class TelegramBot {
         msg += `${message.content}\n\n`;
         msg += `<i>${message.time}</i> | <a href="https://funpay.com/chat/?node=${message.node}">Перейти в чат</a>`
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
@@ -376,7 +443,9 @@ class TelegramBot {
         msg += `👤 <b>Покупатель:</b> <a href="https://funpay.com/users/${order.buyerId}/">${order.buyerName}</a>\n`;
         msg += `🛍️ <b>Товар:</b> <code>${order.name}</code>`;
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
@@ -386,7 +455,9 @@ class TelegramBot {
         let msg = `⬆️ Предложения в категории <a href="https://funpay.com/lots/${category.node_id}/trade">${category.name}</a> подняты.\n`;
         msg += `⌚ Следующее поднятие: <b><i>${nextTimeMsg}</i></b>`;
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
@@ -396,7 +467,9 @@ class TelegramBot {
         let msg = `📦 Товар <code>${productName}</code> выдан покупателю <b><i>${buyerName}</i></b> с сообщением:\n\n`;
         msg += `${message}`;
 
-        this.bot.telegram.sendMessage(getConst('chatId'), msg, {
+        let chatId = this.getChatID();
+        if(!chatId) return;
+        this.bot.telegram.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });

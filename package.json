@@ -1,6 +1,6 @@
 {
   "name": "funpayserver",
-  "version": "0.5.0",
+  "version": "0.5.3",
   "description": "CLI app for auto-managing your FunPay account",
   "main": "src/index.js",
   "dependencies": {
