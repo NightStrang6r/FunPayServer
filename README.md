@@ -8,6 +8,9 @@
 
 ![FunPayServer](https://i.ibb.co/30BrFGr/Screenshot-107.png "FunPayServer")
 
+[![Downloads][downloads-shield]][downloads-link]
+[![Downloads][stars-shield]][stars-link]
+
 ## 🤖 **Возможности**
 
 1. Автовыдача товаров.
@@ -296,3 +299,9 @@ type: http
 - [Monobank](https://send.monobank.ua/jar/7fiVkcrWYv)
 - [DonationAlerts](https://www.donationalerts.com/r/nightstranger)
 - [ЮMoney](https://yoomoney.ru/to/4100115656349483)
+
+[downloads-shield]: https://img.shields.io/github/downloads/NightStrang6r/FunPayServer/total?color=purple&logo=GitHub&style=for-the-badge
+[downloads-link]: https://github.com/NightStrang6r/FunPayServer/releases/latest
+
+[stars-shield]: https://img.shields.io/github/stars/NightStrang6r/FunPayServer?color=purple&logo=Stars&style=for-the-badge
+[stars-link]: https://github.com/NightStrang6r/FunPayServer/
