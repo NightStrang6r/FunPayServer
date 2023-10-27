@@ -1,7 +1,5 @@
 // MODULES
 const fetch = global.node_fetch;
-const dns = global.dns;
-const https = global.https;
 const proxy = global.https_proxy_agent;
 const { exit, sleep } = global.helpers;
 const log = global.log;
@@ -9,12 +7,6 @@ const log = global.log;
 // CONSTANTS
 const settings = global.settings;
 let retriesErrCounter = 0;
-
-// DNS
-dns.setServers([
-    "1.1.1.1",
-    "8.8.8.8"
-]);
 
 // PROXY
 if(settings.proxy.useProxy == true) {
@@ -25,25 +17,6 @@ if(settings.proxy.useProxy == true) {
 
     log(`Для обработки запросов используется ${settings.proxy.type} прокси: ${settings.proxy.host}`, 'g');
 }
-
-async function staticLookup(hostname, _, cb) {
-    try {
-        const ips = await dns.resolve(hostname);
-  
-        if(ips.length === 0) {
-            throw new Error(`Unable to resolve ${hostname}`);
-        }
-      
-        cb(null, ips[0], 4);
-    } catch(err) {
-        log(`Ошибка при получении IP адреса: ${err}`, 'r');
-    }
-};
-
-function staticDnsAgent() {
-    const httpModule = https;
-    return new httpModule.Agent({ lookup: staticLookup });
-};
 
 // FETCH FUNCTION
 export default async function fetch_(url, options, delay = 0, retries = 20) {
@@ -59,7 +32,7 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
         if(!options.headers) options.headers = {};
         if(!options.headers['User-Agent']) options.headers['User-Agent'] = settings.userAgent;
 
-        // Adding proxy or dns
+        // Adding proxy
         if(settings.proxy.useProxy == true) {
             let proxyString = '';
 
@@ -71,8 +44,6 @@ export default async function fetch_(url, options, delay = 0, retries = 20) {
             
             const agent = new proxy(proxyString);
             options.agent = agent;
-        } else {
-            options.agent = staticDnsAgent();
         }
 
         // Adding delay
