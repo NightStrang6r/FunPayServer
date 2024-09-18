@@ -298,7 +298,6 @@ type: http
 
 - [Monobank](https://send.monobank.ua/jar/7fiVkcrWYv)
 - [DonationAlerts](https://www.donationalerts.com/r/nightstranger)
-- [ЮMoney](https://yoomoney.ru/to/4100115656349483)
 
 [downloads-shield]: https://img.shields.io/github/downloads/NightStrang6r/FunPayServer/total?color=purple&logo=GitHub&style=for-the-badge
 [downloads-link]: https://github.com/NightStrang6r/FunPayServer/releases/latest
