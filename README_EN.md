@@ -8,6 +8,9 @@
 
 ![FunPayServer](https://i.ibb.co/856h2xS/Screenshot-104.png "FunPayServer")
 
+> [!TIP]
+> Want automation right in your browser, with nothing to run? Try **[FunPay Lite Bot - the FunPay extension](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip)**: auto-raise, auto-replies, sales statistics, dark theme. 60,000 users, available for [Chrome](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip) and [Firefox](https://addons.mozilla.org/firefox/addon/funpay-lite-bot/). More at [funpaylitebot.com](https://funpaylitebot.com).
+
 ## ⚡ **Installation**
 
 1. Install **[Node.JS](https://nodejs.org/en/)**.
@@ -26,7 +29,7 @@
 4. Autoreply to messages
 
 ## 🔥 Analogues
-If for some reason this version of the bot does not suit you, try the browser extension - [FunPay Lite Bot](https://chrome.google.com/webstore/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip) (functionality will expand).
+If for some reason this version of the bot does not suit you, try **[FunPay Lite Bot - the FunPay extension](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip)**: auto-raise, auto-replies, sales statistics and a dark theme right in your browser. Available for [Chrome](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip) and [Firefox](https://addons.mozilla.org/firefox/addon/funpay-lite-bot/), site: [funpaylitebot.com](https://funpaylitebot.com).
 
 ## 📧 Contacts
 If you have any questions I will be glad to answer.

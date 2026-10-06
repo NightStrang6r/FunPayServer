@@ -11,6 +11,9 @@
 [![Downloads][downloads-shield]][downloads-link]
 [![Downloads][stars-shield]][stars-link]
 
+> [!TIP]
+> Нужна автоматизация прямо в браузере, без отдельной программы? Попробуйте **[FunPay Lite Bot - расширение для FunPay](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip)**: автоподнятие лотов, автоответчик, статистика продаж, тёмная тема. 60 000 пользователей, работает в [Chrome](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip) и [Firefox](https://addons.mozilla.org/firefox/addon/funpay-lite-bot/). Подробнее на [funpaylitebot.com](https://funpaylitebot.com).
+
 ## 🤖 **Возможности**
 
 1. Автовыдача товаров.
@@ -274,7 +277,7 @@ type: http
 ```
 
 ## 🔥 Аналоги
-Если по какой-то причине данная версия бота не подходит для вас, попробуйте расширение для браузера - [FunPay Lite Bot](https://chrome.google.com/webstore/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip). Функционал расширения будет дополняться со временем.
+Если по какой-то причине данная версия бота не подходит для вас, попробуйте **[FunPay Lite Bot - расширение для FunPay](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip)**: автоподнятие лотов, автоответчик, статистика продаж и тёмная тема прямо в браузере. Есть для [Chrome](https://chromewebstore.google.com/detail/funpay-lite-bot/amicfiagmpbgfiiopieeemlkblfeeeip) и [Firefox](https://addons.mozilla.org/firefox/addon/funpay-lite-bot/), сайт - [funpaylitebot.com](https://funpaylitebot.com).
 
 ## 📧 Контакты
 Если у вас есть какие-либо вопросы, я буду рад ответить.
